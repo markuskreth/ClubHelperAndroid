@@ -1,5 +1,6 @@
 package de.kreth.mtvandroidhelper2.ui.fragments;
 
+import de.kreth.mtvandroidhelper2.MenuItem;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -18,11 +19,6 @@ import android.widget.ListView;
  */
 public class ItemListFragment extends ListFragment {
 
-	public enum MenuEntry {
-		PERSON_EDIT,
-		ANWESENHEIT
-	}
-	
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
 	 * activated item position. Only used on tablets.
@@ -49,7 +45,7 @@ public class ItemListFragment extends ListFragment {
 		/**
 		 * Callback for when an item has been selected.
 		 */
-		public void onItemSelected(MenuEntry entry);
+		public void onItemSelected(MenuItem entry);
 	}
 
 	/**
@@ -58,7 +54,7 @@ public class ItemListFragment extends ListFragment {
 	 */
 	private static Callbacks sDummyCallbacks = new Callbacks() {
 		@Override
-		public void onItemSelected(MenuEntry id) {
+		public void onItemSelected(MenuItem id) {
 		}
 	};
 
@@ -73,9 +69,9 @@ public class ItemListFragment extends ListFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setListAdapter(new ArrayAdapter<MenuEntry>(getActivity(),
+		setListAdapter(new ArrayAdapter<MenuItem>(getActivity(),
 				android.R.layout.simple_list_item_activated_1,
-				android.R.id.text1, MenuEntry.values()));
+				android.R.id.text1, MenuItem.values()));
 	}
 
 	@Override
@@ -118,7 +114,8 @@ public class ItemListFragment extends ListFragment {
 		
 		// Notify the active callbacks interface (the activity, if the
 		// fragment is attached to one) that an item has been selected.
-		mCallbacks.onItemSelected(null);
+		MenuItem menuItem = MenuItem.values()[position];
+		mCallbacks.onItemSelected(menuItem);
 	}
 
 	@Override

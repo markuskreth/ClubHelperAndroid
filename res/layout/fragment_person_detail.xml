@@ -1,9 +1,170 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/person_detail"
-    style="?android:attr/textAppearanceLarge"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:textIsSelectable="true"
-    tools:context=".PersonDetailFragment" />
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/buttonBarMain"
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/buttonCancel"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:text="@string/label_cancel" />
+
+        <Button
+            android:id="@+id/buttonOk"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onClick"
+            android:text="@string/label_ok" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonBarDropArea"
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <ImageButton
+            android:id="@+id/btnItemDelete"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:contentDescription="@string/label_delete"
+            android:src="@android:drawable/ic_menu_delete" />
+
+        <ImageButton
+            android:id="@+id/btnItemEdit"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:contentDescription="@string/action_edit"
+            android:src="@android:drawable/ic_menu_edit" />
+
+    </LinearLayout>
+    
+    <EditText
+        android:id="@+id/textFullName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/person_name_label"
+        android:inputType="textPersonName"
+        android:text="@string/empty_string" />
+
+    <TableLayout
+        android:id="@+id/table1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow
+            android:id="@+id/tableRow1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="@string/label_born" />
+
+            <TextView
+                android:id="@+id/txtBirthday"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/label_born"
+                android:ems="10"
+                android:enabled="false"
+                android:gravity="center_horizontal"
+                android:text="@string/dummyDate" >
+
+            </TextView>
+
+            <ImageButton
+                android:id="@+id/btnEditBirthday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:contentDescription="@string/action_edit"
+                android:onClick="onClick"
+                android:src="@android:drawable/ic_menu_edit" />
+
+            <requestFocus />
+        </TableRow>
+
+        <View
+            android:layout_height="2dp"
+            android:background="#FF0000" />
+
+        <TableRow
+            android:id="@+id/tableRowContacts"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2" >
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_span="2"
+                    android:text="@string/label_contacts"
+                    android:textStyle="bold" />
+                
+                <ImageButton
+                    android:id="@+id/btnAddContact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:contentDescription="@string/action_addItem"
+                    android:onClick="onClick"
+                    android:src="@android:drawable/ic_input_add" />
+
+        </TableRow>
+        
+        <View
+            android:layout_height="2dp"
+            android:background="#FF0000" />
+
+        <TableRow
+            android:id="@+id/tableRow3"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_span="2"
+                    android:text="@string/label_parents"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnAddParent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:contentDescription="@string/action_addItem"
+                    android:onClick="onClick"
+                    android:src="@android:drawable/ic_input_add" />
+                
+        </TableRow>
+        
+    </TableLayout>
+
+</LinearLayout>

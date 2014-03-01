@@ -1,6 +1,14 @@
 package de.kreth.mtvandroidhelper2.data;
 
-import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.*;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_ADRESS_FK_PERSON;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_TYPE;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_VALUE;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_ID;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_BIRTH;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_PRENAME;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_SURNAME;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.TABLE_CONTACT;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.TABLE_PERSON;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +16,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-
 
 import android.content.ContentValues;
 import android.database.Cursor;

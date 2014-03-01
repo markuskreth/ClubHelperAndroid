@@ -3,8 +3,8 @@ package de.kreth.mtvandroidhelper2.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import de.kreth.mtvandroidhelper2.MenuItem;
 import de.kreth.mtvandroidhelper2.R;
+import de.kreth.mtvandroidhelper2.data.Person;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
 
@@ -58,13 +58,13 @@ public class PersonListActivity extends FragmentActivity implements
 	 * the item with the given ID was selected.
 	 */
 	@Override
-	public void onItemSelected(MenuItem item) {
+	public void onPersonSelected(Person person) {
 		if (mTwoPane) {
 			// In two-pane mode, show the detail view in this activity by
 			// adding or replacing the detail fragment using a
 			// fragment transaction.
 			Bundle arguments = new Bundle();
-			arguments.putString(PersonDetailFragment.ARG_ITEM_ID, item.toString());
+			arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
 			PersonDetailFragment fragment = new PersonDetailFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
@@ -74,7 +74,7 @@ public class PersonListActivity extends FragmentActivity implements
 			// In single-pane mode, simply start the detail activity
 			// for the selected item ID.
 			Intent detailIntent = new Intent(this, PersonDetailActivity.class);
-			detailIntent.putExtra(PersonDetailFragment.ARG_ITEM_ID, item.toString());
+			detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, person.getId());
 			startActivity(detailIntent);
 		}
 	}

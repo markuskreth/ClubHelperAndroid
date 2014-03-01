@@ -1,15 +1,18 @@
-package de.kreth.mtvandroidhelper2.ui;
+package de.kreth.mtvandroidhelper2;
 
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.R.id;
-import de.kreth.mtvandroidhelper2.R.layout;
+import de.kreth.mtvandroidhelper2.data.Person;
+import de.kreth.mtvandroidhelper2.ui.PersonDetailActivity;
+import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
 import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment;
+import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
-import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment.Callbacks;
-import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment.MenuEntry;
 
 /**
  * An activity representing a list of Items. This activity has different
@@ -26,8 +29,7 @@ import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment.MenuEntry;
  * This activity also implements the required {@link ItemListFragment.Callbacks}
  * interface to listen for item selections.
  */
-public class ItemListActivity extends FragmentActivity implements
-		ItemListFragment.Callbacks {
+public class ItemListActivity extends FragmentActivity implements ItemListFragment.Callbacks, PersonListFragment.Callbacks {
 
 	/**
 	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -38,6 +40,11 @@ public class ItemListActivity extends FragmentActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		try {
+			Factory.getInstance().init(this);
+		} catch (NameNotFoundException e) {
+			Log.e(Factory.getInstance().TAG(), "Fehler bei Factory init", e);
+		}
 		setContentView(R.layout.activity_item_list);
 
 		if (findViewById(R.id.item_detail_container) != null) {
@@ -61,13 +68,13 @@ public class ItemListActivity extends FragmentActivity implements
 	 * the item with the given ID was selected.
 	 */
 	@Override
-	public void onItemSelected(MenuEntry id) {
+	public void onItemSelected(MenuItem menuItem) {
 		if (mTwoPane) {
 			// In two-pane mode, show the detail view in this activity by
 			// adding or replacing the detail fragment using a
 			// fragment transaction.
 			Bundle arguments = new Bundle();
-			PersonListFragment fragment = new PersonListFragment();
+			Fragment fragment = createFragment(menuItem);
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.item_detail_container, fragment).commit();
@@ -79,4 +86,33 @@ public class ItemListActivity extends FragmentActivity implements
 			startActivity(detailIntent);
 		}
 	}
+
+	private Fragment createFragment(MenuItem menuItem) {
+		switch (menuItem) {
+		case PersonContacts:
+			return new PersonListFragment();
+		case PersonList:
+			return new PersonListFragment();
+		default:
+			throw new IllegalArgumentException("Kein Fragment gefunden für MenuItem " + menuItem);
+		}
+	}
+
+	@Override
+	public void onPersonSelected(Person person) {
+		if (mTwoPane){
+			Bundle arguments = new Bundle();
+			arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+			Fragment fragment = new PersonDetailFragment();
+			fragment.setArguments(arguments);
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.item_detail_container, fragment).commit();
+		} else {
+
+			Intent detailIntent = new Intent(this, PersonDetailActivity.class);
+			detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+			startActivity(detailIntent);
+		}
+	}
+
 }

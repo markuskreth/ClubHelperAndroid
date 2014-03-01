@@ -1,12 +1,16 @@
 package de.kreth.mtvandroidhelper2.ui.fragments;
 
-import de.kreth.mtvandroidhelper2.MenuItem;
+import java.util.List;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import de.kreth.mtvandroidhelper2.Factory;
+import de.kreth.mtvandroidhelper2.adapter.PersonListAdapter;
+import de.kreth.mtvandroidhelper2.data.Person;
+import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
 
 /**
  * A list fragment representing a list of Personen. This fragment also supports
@@ -36,7 +40,9 @@ public class PersonListFragment extends ListFragment {
 	 */
 	private int mActivatedPosition = ListView.INVALID_POSITION;
 
-	private ArrayAdapter<MenuItem> adapterMenu;
+	private PersonPersisterImpl persister;
+
+	private PersonListAdapter personListAdapter;
 
 	/**
 	 * A callback interface that all activities containing this fragment must
@@ -47,7 +53,7 @@ public class PersonListFragment extends ListFragment {
 		/**
 		 * Callback for when an item has been selected.
 		 */
-		public void onItemSelected(MenuItem menuItem);
+		public void onPersonSelected(Person person);
 	}
 
 	/**
@@ -57,7 +63,7 @@ public class PersonListFragment extends ListFragment {
 	private static Callbacks sDummyCallbacks = new Callbacks() {
 
 		@Override
-		public void onItemSelected(MenuItem menuItem) {}
+		public void onPersonSelected(Person p) {}
 		
 	};
 
@@ -71,11 +77,10 @@ public class PersonListFragment extends ListFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		adapterMenu = new ArrayAdapter<MenuItem>(getActivity(),
-				android.R.layout.simple_list_item_activated_1,
-				android.R.id.text1, MenuItem.values());
-		setListAdapter(adapterMenu);
+		persister = new PersonPersisterImpl(Factory.getInstance().getDatabase());
+		List<Person> values = persister.getAllPersons();
+		personListAdapter = new PersonListAdapter(getActivity(), persister, values);
+		setListAdapter(personListAdapter);
 	}
 
 	@Override
@@ -115,10 +120,10 @@ public class PersonListFragment extends ListFragment {
 	public void onListItemClick(ListView listView, View view, int position,
 			long id) {
 		super.onListItemClick(listView, view, position, id);
-
+		
 		// Notify the active callbacks interface (the activity, if the
 		// fragment is attached to one) that an item has been selected.
-		mCallbacks.onItemSelected(adapterMenu.getItem(position));
+		mCallbacks.onPersonSelected(personListAdapter.getItem(position));
 	}
 
 	@Override
