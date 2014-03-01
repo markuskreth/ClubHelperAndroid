@@ -13,28 +13,16 @@ import android.app.ActionBar.TabListener;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
-import android.app.Dialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
-import android.telephony.PhoneNumberFormattingTextWatcher;
-import android.text.InputType;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.EditText;
-import android.widget.Spinner;
 
-import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
@@ -42,7 +30,6 @@ import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import de.kreth.mtvandroidhelper2.Factory;
 import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.data.ContactType;
 import de.kreth.mtvandroidhelper2.data.DataChangeHandler;
 import de.kreth.mtvandroidhelper2.data.Person;
 import de.kreth.mtvandroidhelper2.data.PersonContact;
@@ -212,115 +199,11 @@ public class PersonDetailActivity extends FragmentActivity implements View.OnCli
 		case R.id.btnEditBirthday:
 			showBirthdayDialog();
 			break;
-		case R.id.btnAddContact:
-			showCreateContactDialog(ContactType.TELEPHONE, "");
-			break;
-		case PersonDetailFragment.BTN_DEL_CONTACT_ID:
-			int contactId = ((Integer)v.getTag()).intValue();
-			personContactHolder.deleteData(contactId);
-			break;
 		default:
 			break;
 		}
 	}
 	
-	private void showCreateContactDialog(ContactType presetType, String presetValue) {
-		final Dialog dlg = new Dialog(this);
-		dlg.setContentView(R.layout.add_contact_dialog);
-		dlg.setTitle(R.string.title_add_contact);
-		
-		final EditText txt = (EditText) dlg.findViewById(R.id.editText1);
-		txt.setText(presetValue);
-		final PhoneNumberFormattingTextWatcher phoneNumberFormattingTextWatcher = new PhoneNumberFormattingTextWatcher();
-		final ArrayAdapter<ContactType> typeAdapter = new ArrayAdapter<ContactType>(this, android.R.layout.simple_spinner_item, ContactType.values()){
-//			@Override
-//			public long getItemId(int position) {
-//				return position;
-//			}
-		};
-		final Spinner typeSpinner = (Spinner) dlg.findViewById(R.id.spinner1);
-		typeSpinner.setAdapter(typeAdapter);
-		typeSpinner.setSelection(presetType.ordinal());
-		typeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-			@Override
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int position, long itemId) {
-				ContactType selected = typeAdapter.getItem(position);
-				switch (selected) {
-				case EMAIL:
-					txt.removeTextChangedListener(phoneNumberFormattingTextWatcher);
-					txt.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-					txt.setHint(R.string.dummy_email);
-					break;
-				case MOBILE:
-				case TELEPHONE:
-					txt.setInputType(InputType.TYPE_CLASS_PHONE);
-					PhoneNumberType phoneNumberType;
-					
-					if(selected == ContactType.MOBILE)
-						phoneNumberType = PhoneNumberType.MOBILE;
-					else
-						phoneNumberType = PhoneNumberType.FIXED_LINE;
-					
-					PhoneNumber exampleNumber = phoneNumberUtil.getExampleNumberForType(Locale.getDefault().getCountry(), phoneNumberType);
-					txt.setHint(phoneNumberUtil.format(exampleNumber, PhoneNumberFormat.NATIONAL));
-					txt.addTextChangedListener(phoneNumberFormattingTextWatcher);
-					
-					try{
-						PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString(), Locale.getDefault().getCountry());
-						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
-						
-					} catch (Exception e){
-						Log.w(mTag, "Konnte text nicht als Telefonnummer formatieren: " + txt.getText(), e);
-					}
-					break;
-				default:
-					break;
-				}
-			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {}
-		});
-		
-		Button btnOk = (Button) dlg.findViewById(R.id.buttonOk);
-		Button btnCancel = (Button) dlg.findViewById(R.id.buttonCancel);
-		btnOk.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				ContactType selectedType = typeAdapter.getItem(typeSpinner.getSelectedItemPosition());
-				
-				if(selectedType == ContactType.MOBILE || selectedType == ContactType.TELEPHONE){ 
-
-					PhoneNumber phone;
-					try {
-						phone = phoneNumberUtil.parse(txt.getText().toString(), Locale.getDefault().getCountry());
-						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
-					} catch (NumberParseException e) {
-						Factory.getInstance().handleException(Log.ERROR, mTag, e);
-					}
-				}
-				String text = txt.getText().toString();
-				
-				personContactHolder.add(new PersonContact(personHolder.person.getId(), selectedType, text));
-				pcs.firePropertyChange(PersonContact.class.getSimpleName(), 0, -1);
-				dlg.dismiss();
-			}
-			
-		});
-		
-		btnCancel.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				dlg.dismiss();
-			}
-		});
-		dlg.show();
-		
-	}
 
 	@Override
 	public void onBackPressed() {

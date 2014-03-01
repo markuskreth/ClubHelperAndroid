@@ -102,7 +102,10 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	public void onPersonSelected(Person person) {
 		if (mTwoPane){
 			Bundle arguments = new Bundle();
-			arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+			
+			if(person != null)
+				arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+			
 			Fragment fragment = new PersonDetailFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
