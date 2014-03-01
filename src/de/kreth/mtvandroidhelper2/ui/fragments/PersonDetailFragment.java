@@ -7,8 +7,8 @@ import java.util.Locale;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.DatePickerDialog.OnDateSetListener;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.graphics.Color;
@@ -30,6 +30,7 @@ import android.view.View.OnDragListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -38,7 +39,6 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -148,7 +148,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 			if(con.getType()==ContactType.MOBILE || con.getType()==ContactType.TELEPHONE){
 
 				try {
-					PhoneNumber phone = phoneNumberUtil.parse(con.getValue(), Locale.getDefault().getCountry());
+					PhoneNumber phone = phoneNumberUtil.parse(con.getValue().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
 					text = phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL);
 				} catch (NumberParseException e) {
 					text = con.getValue();
@@ -267,10 +267,10 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private void initViewComponents() {
 
-
 		rootView.findViewById(R.id.buttonOk).setOnClickListener(this);
 		rootView.findViewById(R.id.buttonCancel).setOnClickListener(this);
 		rootView.findViewById(R.id.btnEditBirthday).setOnClickListener(this);
+		rootView.findViewById(R.id.btnAddContact).setOnClickListener(this);
 		
 		txtFullNameView = (TextView) rootView.findViewById(R.id.textFullName);
 		txtbirthday = (TextView) rootView.findViewById(R.id.txtBirthday);
@@ -445,11 +445,11 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		switch (v.getId()) {
 		case R.id.buttonOk:
 			persister.storePerson(person);
-			getActivity().onBackPressed();
+			getFragmentManager().popBackStack();
 			break;
 
 		case R.id.buttonCancel:
-			getActivity().onBackPressed();			
+			getFragmentManager().popBackStack();
 			break;
 
 		case R.id.btnEditBirthday:
@@ -501,12 +501,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		final EditText txt = (EditText) dlg.findViewById(R.id.editText1);
 		txt.setText(presetValue);
 		final PhoneNumberFormattingTextWatcher phoneNumberFormattingTextWatcher = new PhoneNumberFormattingTextWatcher();
-		final ArrayAdapter<ContactType> typeAdapter = new ArrayAdapter<ContactType>(getActivity(), android.R.layout.simple_spinner_item, ContactType.values()){
-//			@Override
-//			public long getItemId(int position) {
-//				return position;
-//			}
-		};
+		final ArrayAdapter<ContactType> typeAdapter = new ArrayAdapter<ContactType>(getActivity(), android.R.layout.simple_spinner_item, ContactType.values());
 		final Spinner typeSpinner = (Spinner) dlg.findViewById(R.id.spinner1);
 		typeSpinner.setAdapter(typeAdapter);
 		typeSpinner.setSelection(presetType.ordinal());
@@ -537,7 +532,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 					txt.addTextChangedListener(phoneNumberFormattingTextWatcher);
 					
 					try{
-						PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString(), Locale.getDefault().getCountry());
+						PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
 						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
 						
 					} catch (Exception e){
@@ -565,7 +560,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 					PhoneNumber phone;
 					try {
-						phone = phoneNumberUtil.parse(txt.getText().toString(), Locale.getDefault().getCountry());
+						phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
 						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
 					} catch (NumberParseException e) {
 						Factory.getInstance().handleException(Log.ERROR, mTag, e);
@@ -575,6 +570,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 				PersonContact personContact = new PersonContact(person.getId(), selectedType, text);
 				contacts.add(personContact);
 				persister.storePersonContacts(contacts);
+				setupContacts();
 //				personContactHolder.add(personContact);
 //				pcs.firePropertyChange(PersonContact.class.getSimpleName(), 0, -1);
 				dlg.dismiss();

@@ -77,7 +77,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			Fragment fragment = createFragment(menuItem);
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.item_detail_container, fragment).commit();
+					.replace(R.id.item_detail_container, fragment)
+					.addToBackStack(null)
+					.commit();
 
 		} else {
 			// In single-pane mode, simply start the detail activity
@@ -109,7 +111,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			Fragment fragment = new PersonDetailFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.item_detail_container, fragment).commit();
+					.replace(R.id.item_detail_container, fragment)
+					.addToBackStack(null)
+					.commit();
 		} else {
 
 			Intent detailIntent = new Intent(this, PersonDetailActivity.class);
