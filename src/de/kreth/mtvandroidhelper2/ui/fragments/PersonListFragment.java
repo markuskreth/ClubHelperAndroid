@@ -1,5 +1,6 @@
-package de.kreth.mtvandroidhelper2;
+package de.kreth.mtvandroidhelper2.ui.fragments;
 
+import de.kreth.mtvandroidhelper2.MenuItem;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -7,18 +8,16 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import de.kreth.mtvandroidhelper2.dummy.DummyContent;
-
 /**
- * A list fragment representing a list of Items. This fragment also supports
+ * A list fragment representing a list of Personen. This fragment also supports
  * tablet devices by allowing list items to be given an 'activated' state upon
  * selection. This helps indicate which item is currently being viewed in a
- * {@link ItemDetailFragment}.
+ * {@link PersonDetailFragment}.
  * <p>
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ItemListFragment extends ListFragment {
+public class PersonListFragment extends ListFragment {
 
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
@@ -37,6 +36,8 @@ public class ItemListFragment extends ListFragment {
 	 */
 	private int mActivatedPosition = ListView.INVALID_POSITION;
 
+	private ArrayAdapter<MenuItem> adapterMenu;
+
 	/**
 	 * A callback interface that all activities containing this fragment must
 	 * implement. This mechanism allows activities to be notified of item
@@ -46,7 +47,7 @@ public class ItemListFragment extends ListFragment {
 		/**
 		 * Callback for when an item has been selected.
 		 */
-		public void onItemSelected(String id);
+		public void onItemSelected(MenuItem menuItem);
 	}
 
 	/**
@@ -54,26 +55,27 @@ public class ItemListFragment extends ListFragment {
 	 * nothing. Used only when this fragment is not attached to an activity.
 	 */
 	private static Callbacks sDummyCallbacks = new Callbacks() {
+
 		@Override
-		public void onItemSelected(String id) {
-		}
+		public void onItemSelected(MenuItem menuItem) {}
+		
 	};
 
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
 	 * fragment (e.g. upon screen orientation changes).
 	 */
-	public ItemListFragment() {
+	public PersonListFragment() {
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// TODO: replace with a real list adapter.
-		setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
+		adapterMenu = new ArrayAdapter<MenuItem>(getActivity(),
 				android.R.layout.simple_list_item_activated_1,
-				android.R.id.text1, DummyContent.ITEMS));
+				android.R.id.text1, MenuItem.values());
+		setListAdapter(adapterMenu);
 	}
 
 	@Override
@@ -116,7 +118,7 @@ public class ItemListFragment extends ListFragment {
 
 		// Notify the active callbacks interface (the activity, if the
 		// fragment is attached to one) that an item has been selected.
-		mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+		mCallbacks.onItemSelected(adapterMenu.getItem(position));
 	}
 
 	@Override

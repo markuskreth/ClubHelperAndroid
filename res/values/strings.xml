@@ -3,5 +3,44 @@
 
     <string name="app_name">MtvAndroidHelper2</string>
     <string name="title_item_detail">Item Detail</string>
-
+    <string name="title_person_list">Personen</string>
+    <string name="title_person_detail">Person Detail</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="action_addItem">Hinzufügen</string>
+    <string name="action_removeItem">Löschen</string>
+    <string name="action_searchItem">Suchen</string>
+    <string name="title_activity_person">Person</string>
+    <string name="title_add_contact">Neuer Kontakt</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="addPerson">Hinzufügen</string>
+    <string name="space_comma">", "</string>
+    <string name="empty_string"></string>
+    <string name="person_name_label">&lt;Vorname&gt; &lt;Nachname&gt;</string>
+    <string name="label_ok">OK</string>
+    <string name="label_cancel">Abbrechen</string>
+    <string name="label_yes">Ja</string>
+    <string name="label_no">Nein</string>
+    <string name="label_delete">Löschen</string>
+    <string name="label_born">Geburtstag</string>
+    <string name="label_mother">Mutter</string>
+    <string name="label_father">Vater</string>
+    <string name="label_parents">Erziehungsberechtigte</string>
+    <string name="label_contacts">Kontakte</string>
+    <string name="label_email">Email</string>
+    <string name="label_telephone">Telefon</string>
+    <string name="label_mobil">Mobil</string>
+    <string name="label_menu_personanwesenheit">Anwesenheit</string>
+    <string name="label_menu_personcontacts">Kontakte</string>
+    <string name="search_for">Suchbegriff</string>
+    <string name="label_value">Wert:</string>
+    <string name="filter">Filter</string>
+    <string name="dummyDate">01.01.1980</string>
+    <string name="dummy_email">name@domain.de</string>
+    <string name="dummy_telephone">555#8211;1234567</string>
+    <string name="confirm_discard">Wollen Sie die Änderungen wirklich verwerfen?</string>
+    <string name="confirm_delete">Wollen Sie %1$s wirklich löschen?</string>
+    
 </resources>
