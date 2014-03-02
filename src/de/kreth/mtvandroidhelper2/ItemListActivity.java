@@ -35,7 +35,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
 	 * device.
 	 */
-	private boolean mTwoPane;
+	private int mPaneCount = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +52,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			// large-screen layouts (res/values-large and
 			// res/values-sw600dp). If this view is present, then the
 			// activity should be in two-pane mode.
-			mTwoPane = true;
+			mPaneCount++;
 
 			// In two-pane mode, list items should be given the
 			// 'activated' state when touched.
@@ -60,6 +60,14 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 					R.id.item_list)).setActivateOnItemClick(true);
 		}
 
+		if (findViewById(R.id.item_person_container) != null) {
+			// The detail container view will be present only in the
+			// large-screen layouts (res/values-large and
+			// res/values-sw600dp). If this view is present, then the
+			// activity should be in three-pane mode.
+			mPaneCount++;
+		}
+		
 		// TODO: If exposing deep links into your app, handle intents here.
 	}
 
@@ -69,27 +77,46 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	 */
 	@Override
 	public void onItemSelected(MenuItem menuItem) {
-		if (mTwoPane) {
+
+		Bundle arguments;
+		PersonListFragment fragment;
+		switch (mPaneCount) {
+		case 1:
+			// In single-pane mode, simply start the detail activity
+			// for the selected item ID.
+			Intent detailIntent = new Intent(this, PersonListActivity.class);
+			startActivity(detailIntent);
+			break;
+		case 2:
+
 			// In two-pane mode, show the detail view in this activity by
 			// adding or replacing the detail fragment using a
 			// fragment transaction.
-			Bundle arguments = new Bundle();
-			Fragment fragment = createFragment(menuItem);
+			arguments = new Bundle();
+			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, false);
+			fragment = createFragment(menuItem);
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.item_detail_container, fragment)
 					.addToBackStack(null)
 					.commit();
-
-		} else {
-			// In single-pane mode, simply start the detail activity
-			// for the selected item ID.
-			Intent detailIntent = new Intent(this, PersonListActivity.class);
-			startActivity(detailIntent);
+			break;
+		case 3:
+			arguments = new Bundle();
+			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, true);
+			fragment = createFragment(menuItem);
+			fragment.setArguments(arguments);
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.item_person_container, fragment)
+					.addToBackStack(null)
+					.commit();
+			break;
+		default:
+			break;
 		}
 	}
 
-	private Fragment createFragment(MenuItem menuItem) {
+	private PersonListFragment createFragment(MenuItem menuItem) {
 		switch (menuItem) {
 		case PersonContacts:
 			return new PersonListFragment();
@@ -102,7 +129,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 
 	@Override
 	public void onPersonSelected(Person person) {
-		if (mTwoPane){
+		if (mPaneCount>1){
 			Bundle arguments = new Bundle();
 			
 			if(person != null)

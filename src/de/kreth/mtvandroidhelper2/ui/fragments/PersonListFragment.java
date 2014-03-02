@@ -46,6 +46,7 @@ import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
  */
 public class PersonListFragment extends Fragment {
 
+	public static final String ActivateOnItemClick = "ActivateOnItemClick to Set";
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
 	 * activated item position. Only used on tablets.
@@ -187,7 +188,8 @@ public class PersonListFragment extends Fragment {
 				mCallbacks.onPersonSelected(adapter.getItem(position));	
 			}
 		});
-		
+		boolean activateOnItemClick = getArguments().getBoolean(ActivateOnItemClick, false);
+		setActivateOnItemClick(activateOnItemClick);
 	}
 
 	private void setupAdapter() {
@@ -247,7 +249,7 @@ public class PersonListFragment extends Fragment {
 	 * Turns on activate-on-click mode. When this mode is on, list items will be
 	 * given the 'activated' state when touched.
 	 */
-	public void setActivateOnItemClick(boolean activateOnItemClick) {
+	private void setActivateOnItemClick(boolean activateOnItemClick) {
 		// When setting CHOICE_MODE_SINGLE, ListView will automatically
 		// give items the 'activated' state when touched.
 		listView.setChoiceMode(
