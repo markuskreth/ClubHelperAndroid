@@ -57,6 +57,7 @@ import de.kreth.mtvandroidhelper2.data.PersonContact;
 import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
 import de.kreth.mtvandroidhelper2.ui.PersonDetailActivity;
 import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
+import de.kreth.mtvandroidhelper2.ui.utils.DialogDoConnection;
 import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
 
 /**
@@ -88,7 +89,6 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	private int contactCount;
 	private ViewGroup buttonBarMain;
 	private ViewGroup buttonBarDropContact;
-	private PhoneNumberUtil phoneNumberUtil;
 	private PersonPersisterImpl persister;
 	private FragmentNavigator navigator = FragmentNavigator.DUMMY;
 	
@@ -97,7 +97,6 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		
 		mTag = Factory.getInstance().TAG() + getClass().getSimpleName();
-		phoneNumberUtil = PhoneNumberUtil.getInstance();
 		persister = new PersonPersisterImpl(Factory.getInstance().getDatabase());
 	}
 
@@ -158,7 +157,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		
 		contactCount = contacts.size();
 		
-		for(PersonContact con: contacts){
+		for(final PersonContact con: contacts){
 			TableRow row = createNewTableRow();
 			View view1 = createNewContactTypeViewForTableRow(con.getType());
 			view1.setFocusable(false);
@@ -166,16 +165,11 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 			row.addView(view1);
 			String text;
 			if(con.getType()==ContactType.MOBILE || con.getType()==ContactType.TELEPHONE){
-
-				try {
-					PhoneNumber phone = phoneNumberUtil.parse(con.getValue().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
-					text = phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL);
-				} catch (NumberParseException e) {
-					text = con.getValue();
-				}
-			}
-			else 
+				text = con.getFormattedValue();
+			} else {
 				text = con.getValue();
+			}
+			
 			TextView txtValue = createNewContactValueTextViewForTableRow(text);
 			row.addView(txtValue);
 			
@@ -183,6 +177,14 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 			
 			TableRowDragListener trdl = new TableRowDragListener();
 			row.setOnLongClickListener(trdl);
+			row.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					DialogDoConnection connectDialog = new DialogDoConnection(con);
+					connectDialog.showDialog(getActivity());
+				}
+			});
 			table.addView(row, index);
 			index++;
 		}
@@ -269,6 +271,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		    }
 		};
 		row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT));
+		row.setPadding(2, 5, 5, 2);
 		return row;
 	}
 
@@ -615,7 +618,8 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 						phoneNumberType = PhoneNumberType.MOBILE;
 					else
 						phoneNumberType = PhoneNumberType.FIXED_LINE;
-					
+
+					PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 					PhoneNumber exampleNumber = phoneNumberUtil.getExampleNumberForType(Locale.getDefault().getCountry(), phoneNumberType);
 					txt.setHint(phoneNumberUtil.format(exampleNumber, PhoneNumberFormat.NATIONAL));
 					txt.addTextChangedListener(phoneNumberFormattingTextWatcher);
@@ -649,19 +653,19 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 					PhoneNumber phone;
 					try {
+						PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 						phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
 						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
 					} catch (NumberParseException e) {
 						Factory.getInstance().handleException(Log.ERROR, mTag, e);
 					}
 				}
+				
 				String text = txt.getText().toString();
 				PersonContact personContact = new PersonContact(person.getId(), selectedType, text);
 				contacts.add(personContact);
 				persister.storePersonContacts(contacts);
 				setupContacts();
-//				personContactHolder.add(personContact);
-//				pcs.firePropertyChange(PersonContact.class.getSimpleName(), 0, -1);
 				dlg.dismiss();
 			}
 			

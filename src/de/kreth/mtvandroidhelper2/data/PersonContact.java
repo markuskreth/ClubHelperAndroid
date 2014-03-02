@@ -1,5 +1,12 @@
 package de.kreth.mtvandroidhelper2.data;
 
+import java.util.Locale;
+
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
+
 public class PersonContact extends PersistentDataObject {
 	private int personId;
 	private ContactType type;
@@ -9,7 +16,7 @@ public class PersonContact extends PersistentDataObject {
 		super();
 		this.personId = personId;
 		this.type = type;
-		this.value = value;
+		initValue(value);
 	}
 
 	@Override
@@ -21,7 +28,14 @@ public class PersonContact extends PersistentDataObject {
 		super(id);
 		this.personId = personId;
 		this.type = type;
-		this.value = value;
+		initValue(value);
+	}
+
+	private void initValue(String value2) {
+		if(type == ContactType.MOBILE || type == ContactType.TELEPHONE)
+			this.value = value2.replaceAll("[^\\d.]", "");
+		else
+			this.value = value2;
 	}
 
 	public int getPersonId() {
@@ -36,6 +50,18 @@ public class PersonContact extends PersistentDataObject {
 		return value;
 	}
 
+	public String getFormattedValue(){
+		if(type == ContactType.MOBILE || type == ContactType.TELEPHONE)
+		try {
+			PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+			PhoneNumber phone = phoneNumberUtil.parse(getValue(), Locale.getDefault().getCountry());
+			return phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL);
+		} catch (NumberParseException e) {
+			return value;
+		}
+		return value;		
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

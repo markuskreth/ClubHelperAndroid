@@ -31,6 +31,7 @@ import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
  */
 public class ItemListActivity extends FragmentActivity implements ItemListFragment.Callbacks, PersonListFragment.Callbacks, FragmentNavigator {
 
+	// FIXME java.util.ConcurrentModifcationException tritt auf wenn Drop-Event auftritt - scheinbar sowohl im leeren Raum, als auch beim Löschen!?
 	/**
 	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
 	 * device.

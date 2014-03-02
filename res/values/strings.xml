@@ -12,9 +12,10 @@
     <string name="action_searchItem">Suchen</string>
     <string name="title_activity_person">Person</string>
     <string name="title_add_contact">Neuer Kontakt</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
+    <string name="title_connect_email">Email schreiben?</string>
+    <string name="title_connect_mobile">Verbindung mit Handy: </string>
+    <string name="title_connect_sms">Sende SMS an: </string>
+    <string name="title_connect_telephone">Verbindung mit Festnetz: </string>
     <string name="addPerson">Hinzufügen</string>
     <string name="space_comma">", "</string>
     <string name="empty_string"></string>
