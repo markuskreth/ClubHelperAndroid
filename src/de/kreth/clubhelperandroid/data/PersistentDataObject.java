@@ -3,21 +3,21 @@ package de.kreth.clubhelperandroid.data;
 public abstract class PersistentDataObject {
 
 	private static int nextUnpersistentId = -1;
-	private int _id;
+	private long _id;
 
 	public PersistentDataObject() {
 		super();
 		_id = nextUnpersistentId--;
 	}
 	
-	public PersistentDataObject(int id) {
+	public PersistentDataObject(long insertId) {
 		this();
-		if(id <0)
-			throw new IllegalArgumentException("Dieser Konstruktor ist nur für persistente Objekte - der Primary Key darf daher nicht <0 sein! War aber " + id);
-		this._id = id;
+		if(insertId <0)
+			throw new IllegalArgumentException("Dieser Konstruktor ist nur für persistente Objekte - der Primary Key darf daher nicht <0 sein! War aber " + insertId);
+		this._id = insertId;
 	}
 
-	public int getId() {
+	public long getId() {
 		return _id;
 	}
 
@@ -34,4 +34,27 @@ public abstract class PersistentDataObject {
 	public boolean isPersistent(){
 		return _id >= 0;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = (int) (prime * result + _id);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PersistentDataObject other = (PersistentDataObject) obj;
+		if (_id != other._id)
+			return false;
+		return true;
+	}
+	
 }

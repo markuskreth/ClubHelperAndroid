@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
+import de.kreth.clubhelperandroid.R;
 import de.kreth.clubhelperandroid.data.Person;
 import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
-import de.kreth.clubhelperandroid.R;
 
 /**
  * An activity representing a list of Personen. This activity has different
@@ -31,9 +31,19 @@ public class PersonListActivity extends FragmentActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.activity_person_list);
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
+		setupFragmentArguments();
+
+	}
+
+	private void setupFragmentArguments() {
+		PersonListFragment fragment = (PersonListFragment) getSupportFragmentManager().findFragmentById(R.id.person_list);
+		Bundle arguments = getIntent().getExtras();
+		String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
+		fragment.setMode(PersonListFragment.PERSON_LIST_MODE.valueOf(modeName));
 	}
 
 	/**
@@ -44,7 +54,7 @@ public class PersonListActivity extends FragmentActivity implements
 	public void onPersonSelected(Person person) {
 
 		Intent detailIntent = new Intent(this, PersonDetailActivity.class);
-		int personId = -1;
+		long personId = -1;
 		if(person != null)
 			personId = person.getId();
 		detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, personId);

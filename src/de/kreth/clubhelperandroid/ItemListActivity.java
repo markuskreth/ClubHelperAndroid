@@ -74,12 +74,6 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	}
 
 	@Override
-	protected void onDestroy() {
-		Factory.getInstance().shutdown();
-		super.onDestroy();
-	}
-
-	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
@@ -96,14 +90,22 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	@Override
 	public void onItemSelected(MenuItem menuItem) {
 
+		String personListModeName = PersonListFragment.PERSON_LIST_MODE.NORMAL.name();
+		
+		if(menuItem == MenuItem.PersonAttendance)
+			personListModeName = PersonListFragment.PERSON_LIST_MODE.ATTENDANCE.name();
+		
 		Bundle arguments;
+		
 		PersonListFragment fragment;
+		
 		switch (mPaneCount) {
 		case 1:
 			// In single-pane mode, simply start the detail activity
 			// for the selected item ID.
 			Intent detailIntent = new Intent(this, PersonListActivity.class);
 			detailIntent.putExtra(PersonListFragment.ActivateOnItemClick, false);
+			detailIntent.putExtra(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
 			startActivity(detailIntent);
 			break;
 		case 2:
@@ -113,7 +115,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			// fragment transaction.
 			arguments = new Bundle();
 			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, false);
-			fragment = createFragment(menuItem);
+			arguments.putString(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
+			
+			fragment = new PersonListFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.item_detail_container, fragment)
@@ -123,7 +127,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		case 3:
 			arguments = new Bundle();
 			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, true);
-			fragment = createFragment(menuItem);
+			arguments.putString(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
+			
+			fragment = new PersonListFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.item_person_container, fragment)
@@ -135,24 +141,13 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		}
 	}
 
-	private PersonListFragment createFragment(MenuItem menuItem) {
-		switch (menuItem) {
-		case PersonContacts:
-			return new PersonListFragment();
-		case PersonList:
-			return new PersonListFragment();
-		default:
-			throw new IllegalArgumentException("Kein Fragment gefunden für MenuItem " + menuItem);
-		}
-	}
-
 	@Override
 	public void onPersonSelected(Person person) {
 		if (mPaneCount>1){
 			Bundle arguments = new Bundle();
 			
 			if(person != null)
-				arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+				arguments.putLong(PersonDetailFragment.ARG_PERSON_ID, person.getId());
 			
 			Fragment fragment = new PersonDetailFragment();
 			fragment.setArguments(arguments);

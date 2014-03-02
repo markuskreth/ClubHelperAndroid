@@ -8,11 +8,11 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 public class PersonContact extends PersistentDataObject {
-	private int personId;
+	private long personId;
 	private ContactType type;
 	private String value;
 
-	public PersonContact(int personId, ContactType type, String value) {
+	public PersonContact(long personId, ContactType type, String value) {
 		super();
 		this.personId = personId;
 		this.type = type;
@@ -24,7 +24,7 @@ public class PersonContact extends PersistentDataObject {
 		return getClass().getSimpleName() + ": id=" + getId() + ", personId=" + getPersonId() + ", type=" + getType() + ", value=" + getValue();
 	}
 	
-	public PersonContact(int id, int personId, ContactType type, String value) {
+	public PersonContact(long id, int personId, ContactType type, String value) {
 		super(id);
 		this.personId = personId;
 		this.type = type;
@@ -38,7 +38,7 @@ public class PersonContact extends PersistentDataObject {
 			this.value = value2;
 	}
 
-	public int getPersonId() {
+	public long getPersonId() {
 		return personId;
 	}
 

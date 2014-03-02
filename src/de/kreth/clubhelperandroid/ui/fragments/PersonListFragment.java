@@ -4,10 +4,15 @@ package de.kreth.clubhelperandroid.ui.fragments;
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_PRENAME;
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_SURNAME;
 
+import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.DialogInterface;
@@ -27,10 +32,16 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import de.kreth.clubhelperandroid.Factory;
+import de.kreth.clubhelperandroid.adapter.PersonAttendenceListAdapter;
 import de.kreth.clubhelperandroid.adapter.PersonListAdapter;
+import de.kreth.clubhelperandroid.data.Attendance;
 import de.kreth.clubhelperandroid.data.Person;
 import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
@@ -45,9 +56,14 @@ import de.kreth.clubhelperandroid.R;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class PersonListFragment extends Fragment {
+public class PersonListFragment extends Fragment implements OnCheckedChangeListener {
 
 	public static final String ActivateOnItemClick = "ActivateOnItemClick to Set";
+	public enum PERSON_LIST_MODE {
+		NORMAL,
+		ATTENDANCE
+	}
+	
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
 	 * activated item position. Only used on tablets.
@@ -65,7 +81,7 @@ public class PersonListFragment extends Fragment {
 	 */
 	private int mActivatedPosition = ListView.INVALID_POSITION;
 
-	private PersonListAdapter adapter;
+	private PersonListAdapter adapterNormal;
 
 	private PersonPersisterImpl persister;
 
@@ -79,6 +95,15 @@ public class PersonListFragment extends Fragment {
 
 	private ListView listView;
 
+	private PERSON_LIST_MODE mode = PERSON_LIST_MODE.NORMAL;
+	private Calendar attendenceDate;
+
+	private PersonAttendenceListAdapter adapterAttendence;
+
+	private List<Attendance> attendancesOriginal;
+
+	private TextView txtTitle;
+	
 	/**
 	 * A callback interface that all activities containing this fragment must
 	 * implement. This mechanism allows activities to be notified of item
@@ -112,11 +137,33 @@ public class PersonListFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		rootView = inflater.inflate(R.layout.fragment_person_list, null);
-		initComponents();
-		setupAdapter();
+		Bundle arguments = getArguments();
+		
+		if(arguments != null) {
+			String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
+			if(modeName != null && ! modeName.isEmpty()){
+				this.mode = PERSON_LIST_MODE.valueOf(modeName);
+			}
+		}
+		attendenceDate = new GregorianCalendar();
+		attendenceDate.set(Calendar.HOUR_OF_DAY, 0);
+		attendenceDate.set(Calendar.MINUTE, 0);
+		attendenceDate.set(Calendar.SECOND, 0);
+		attendenceDate.set(Calendar.MILLISECOND, 0);
+		recreate();
 		return rootView;
 	}
 	
+	public void setMode(PERSON_LIST_MODE mode) {
+		this.mode = mode;
+		recreate();
+	}
+	
+	private void recreate() {
+		initComponents();
+		setupAdapter();
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -138,9 +185,16 @@ public class PersonListFragment extends Fragment {
 		} else {
 			whereClause = COLUMN_PERSON_PRENAME + " like '" + filter + "%' OR " + COLUMN_PERSON_SURNAME + " like '" + filter + "%'";
 		}
-		List<Person> personsWhere = persister.getPersonsWhere(whereClause);
-		adapter.clear();
-		adapter.addAll(personsWhere);
+		if(mode == PERSON_LIST_MODE.NORMAL) {
+			List<Person> personsWhere = persister.getPersonsWhere(whereClause);
+			adapterNormal.clear();
+			adapterNormal.addAll(personsWhere);
+		} else if (mode == PERSON_LIST_MODE.ATTENDANCE) {
+			adapterAttendence.clear();
+			attendancesOriginal = persister.getAttendancesWhere(whereClause, this.attendenceDate);
+			adapterAttendence.setDate(attendenceDate);
+			adapterAttendence.addAll(attendancesOriginal);
+		}
 	}
 
 	/**
@@ -160,7 +214,7 @@ public class PersonListFragment extends Fragment {
 	}
 
 	private void initComponents() {
-
+		
 		filter = (EditText) rootView.findViewById(R.id.txtFilter);
 
 		filter.addTextChangedListener(new TextWatcher() {
@@ -183,15 +237,22 @@ public class PersonListFragment extends Fragment {
 		buttonBarDropTarget.findViewById(R.id.btnItemDelete).setOnDragListener(new ObjectDragListener());
 
 		listView = (ListView) rootView.findViewById(R.id.listView1);
-		listView.setOnItemClickListener(new OnItemClickListener() {
 
-			@Override
-			public void onItemClick(AdapterView<?> arg0, View view, int position,
-					long id) {
-				
-				mCallbacks.onPersonSelected(adapter.getItem(position));	
-			}
-		});
+		txtTitle = (TextView) rootView.findViewById(R.id.textTitle);
+		
+		if(this.mode != PERSON_LIST_MODE.ATTENDANCE) {
+			listView.setOnItemClickListener(new OnItemClickListener() {
+	
+				@Override
+				public void onItemClick(AdapterView<?> arg0, View view, int position,
+						long id) {
+					
+					mCallbacks.onPersonSelected(adapterNormal.getItem(position));	
+				}
+			});
+		} else {
+			txtTitle.setText(R.string.title_activity_attendance);
+		}
 		Bundle arguments = getArguments();
 		if(arguments != null) {
 			boolean activateOnItemClick = arguments.getBoolean(ActivateOnItemClick, false);
@@ -200,12 +261,21 @@ public class PersonListFragment extends Fragment {
 	}
 
 	private void setupAdapter() {
-		ListItemDragOnLongClickListener longClickListener = new ListItemDragOnLongClickListener();
-		
-		adapter = new PersonListAdapter(getActivity(), persister, persister.getAllPersons());
-		listView.setAdapter(adapter);
-		listView.setLongClickable(true);
-		listView.setOnItemLongClickListener(longClickListener);
+		switch (mode) {
+		case ATTENDANCE:
+			attendancesOriginal = persister.getAttendancesWhere("", this.attendenceDate);
+			adapterAttendence = new PersonAttendenceListAdapter(getActivity(), attendancesOriginal, this);
+			listView.setAdapter(adapterAttendence);
+			break;
+		case NORMAL:
+		default:
+			adapterNormal = new PersonListAdapter(getActivity(), persister.getAllPersons());
+			listView.setAdapter(adapterNormal);
+			ListItemDragOnLongClickListener longClickListener = new ListItemDragOnLongClickListener();
+			listView.setOnItemLongClickListener(longClickListener);
+			listView.setLongClickable(true);
+			break;
+		}
 	}
 
 	@Override
@@ -232,6 +302,39 @@ public class PersonListFragment extends Fragment {
 		}
 
 		mCallbacks = (Callbacks) activity;
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if(mode == PERSON_LIST_MODE.ATTENDANCE){
+			showAttendanceDateDialog();
+		}
+	}
+
+	private void showAttendanceDateDialog() {
+		
+		int year = attendenceDate.get(Calendar.YEAR);
+		int monthOfYear = attendenceDate.get(Calendar.MONTH);
+		int dayOfMonth = attendenceDate.get(Calendar.DAY_OF_MONTH);
+		DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
+				createDateSetListener(), year, monthOfYear, dayOfMonth);
+		datePickerDialog.show();
+	}
+
+	private OnDateSetListener createDateSetListener() {
+		OnDateSetListener listener = new OnDateSetListener() {
+			
+			@Override
+			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+				attendenceDate.set(year, monthOfYear, dayOfMonth);
+				
+				String title = getActivity().getString(R.string.title_activity_attendance) + " " + DateFormat.getDateInstance().format(attendenceDate.getTime());
+				txtTitle.setText(title);
+				refreshList();
+			}
+		};
+		return listener ;
 	}
 
 	@Override
@@ -283,7 +386,7 @@ public class PersonListFragment extends Fragment {
 		@Override
 		public boolean onItemLongClick(AdapterView<?> arg0, View childView,
 				int position, long id) {
-			Person person = adapter.getItem(position);
+			Person person = adapterNormal.getItem(position);
 
 			String text = person.toString();
 			ClipData.Item item = new ClipData.Item(text);
@@ -362,7 +465,7 @@ public class PersonListFragment extends Fragment {
 				
 				int pos = listView.getPositionForView(draggedView);
 				
-				final Person person = (Person) adapter.getItem(pos);
+				final Person person = (Person) adapterNormal.getItem(pos);
 				
 				if(v.getId()==R.id.btnItemDelete){
 					activity.runOnUiThread(new Runnable() {
@@ -390,6 +493,22 @@ public class PersonListFragment extends Fragment {
 			
 			return retVal;
 		}
+		
+	}
+
+
+	@Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		int position = buttonView.getId();
+		Attendance attendance = attendancesOriginal.remove(position);
+		Attendance toStore;
+		if(isChecked) {
+			toStore = persister.storeAttendance(attendance, this.attendenceDate);
+		} else {
+			toStore = persister.storeAttendance(attendance, this.attendenceDate);
+			
+		}
+		attendancesOriginal.add(toStore);
 		
 	}
 

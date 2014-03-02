@@ -3,7 +3,7 @@ package de.kreth.clubhelperandroid;
 import de.kreth.clubhelperandroid.R;
 
 public enum MenuItem {
-	PersonList(R.string.label_menu_personanwesenheit),
+	PersonAttendance(R.string.label_menu_personanwesenheit),
 	PersonContacts(R.string.label_menu_personcontacts);
 	
 	private int resourceId;

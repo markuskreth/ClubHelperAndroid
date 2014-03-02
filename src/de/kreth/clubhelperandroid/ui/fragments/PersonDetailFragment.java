@@ -104,7 +104,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
-		int personId = getArguments().getInt(
+		long personId = getArguments().getLong(
 				PersonDetailFragment.ARG_PERSON_ID, -1);
 		// personHandler = activity.getPersonHandler();
 		// contactHandler = (ContactListHolder)activity.getContactHandler();
@@ -295,7 +295,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		return row;
 	}
 
-	private void setupPerson(int personId) {
+	private void setupPerson(long personId) {
 
 		personOriginal = persister.getPersonById(personId);
 		if (personOriginal.isPersistent())
@@ -604,14 +604,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		} else {
 			persister.storePersonContacts(contacts);
 			contactsOriginal = contacts;
-			contacts = new ArrayList<PersonContact>(contactsOriginal); // Eigentlich
-																		// unnötig,
-																		// aber
-																		// vielleicht
-																		// bleibt
-																		// ja
-																		// was
-																		// offen...
+			contacts = new ArrayList<PersonContact>(contactsOriginal); // Eigentlich unnötig, aber vielleicht bleibt ja was offen...
 		}
 
 		goBack();
