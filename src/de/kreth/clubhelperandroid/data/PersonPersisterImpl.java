@@ -1,6 +1,6 @@
-package de.kreth.mtvandroidhelper2.data;
+package de.kreth.clubhelperandroid.data;
 
-import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_ADRESS_FK_PERSON;
+import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_FK;
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_TYPE;
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_CONTACT_VALUE;
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_ID;
@@ -23,7 +23,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
 public class PersonPersisterImpl {
-	private static final String[] CONTACT_COLUMNS = {COLUMN_ID, COLUMN_CONTACT_ADRESS_FK_PERSON, COLUMN_CONTACT_TYPE, COLUMN_CONTACT_VALUE};
+	private static final String[] CONTACT_COLUMNS = {COLUMN_ID, COLUMN_PERSON_FK, COLUMN_CONTACT_TYPE, COLUMN_CONTACT_VALUE};
 	private List<String> contactColumnNames = Arrays.asList(CONTACT_COLUMNS);
 	
 	private static final String[] PERSON_COLUMNS = {COLUMN_ID, COLUMN_PERSON_PRENAME, COLUMN_PERSON_SURNAME, COLUMN_PERSON_BIRTH};
@@ -95,7 +95,7 @@ public class PersonPersisterImpl {
 	 */
 	public List<PersonContact> getContactsFor(Person person) {
 		List<PersonContact> result = new ArrayList<PersonContact>();
-		Cursor query = db.query(TABLE_CONTACT, CONTACT_COLUMNS, COLUMN_CONTACT_ADRESS_FK_PERSON + "=" + person.getId(), null, null, null, null);
+		Cursor query = db.query(TABLE_CONTACT, CONTACT_COLUMNS, COLUMN_PERSON_FK + "=" + person.getId(), null, null, null, null);
 		
 		while(query.moveToNext()){
 			PersonContact contact = cursorToContact(query);
@@ -108,7 +108,7 @@ public class PersonPersisterImpl {
 
 	private PersonContact cursorToContact(Cursor query) {
 		int id = query.getInt(contactColumnNames.indexOf(COLUMN_ID));
-		int personId = query.getInt(contactColumnNames.indexOf(COLUMN_CONTACT_ADRESS_FK_PERSON));
+		int personId = query.getInt(contactColumnNames.indexOf(COLUMN_PERSON_FK));
 		ContactType type = ContactType.valueOf(query.getString(contactColumnNames.indexOf(COLUMN_CONTACT_TYPE)));
 		String value = query.getString(contactColumnNames.indexOf(COLUMN_CONTACT_VALUE));
 		return new PersonContact(id, personId, type, value);
@@ -184,7 +184,7 @@ public class PersonPersisterImpl {
 
 	private void secureStmDeletePersonContractsExists() {
 		if(stmDeletePersonContracts == null){
-			String sql = "DELETE FROM " + TABLE_CONTACT + " WHERE " + COLUMN_CONTACT_ADRESS_FK_PERSON + "=?";
+			String sql = "DELETE FROM " + TABLE_CONTACT + " WHERE " + COLUMN_PERSON_FK + "=?";
 			stmDeletePersonContracts = db.compileStatement(sql);
 		}
 		
@@ -203,7 +203,7 @@ public class PersonPersisterImpl {
 		if(stmInsertPersonContracts == null) {
 
 			String sql = "INSERT INTO " + TABLE_CONTACT + "(" +
-					COLUMN_CONTACT_ADRESS_FK_PERSON + "," +
+					COLUMN_PERSON_FK + "," +
 					COLUMN_CONTACT_TYPE + "," +
 					COLUMN_CONTACT_VALUE +
 					") VALUES (?,?,?)";

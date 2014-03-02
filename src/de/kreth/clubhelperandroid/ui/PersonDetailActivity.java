@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.ui;
+package de.kreth.clubhelperandroid.ui;
 
 import java.util.Locale;
 
@@ -13,9 +13,9 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
-import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
-import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
+import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.R;
 
 /**
  * An activity representing a single Person detail screen. This activity is only

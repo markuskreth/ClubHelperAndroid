@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2;
+package de.kreth.clubhelperandroid;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -90,5 +90,9 @@ public class Factory {
 			Log.e(tag, "Exception aufgetreten: ", e);
 			break;
 		}
+	}
+
+	public void shutdown() {
+		sqliteHelper.close();
 	}
 }

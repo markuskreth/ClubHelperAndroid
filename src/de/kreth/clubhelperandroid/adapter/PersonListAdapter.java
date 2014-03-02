@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.adapter;
+package de.kreth.clubhelperandroid.adapter;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import de.kreth.mtvandroidhelper2.data.Person;
-import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
+import de.kreth.clubhelperandroid.data.Person;
+import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
 
 public class PersonListAdapter extends ArrayAdapter<Person> {
 	

@@ -1,4 +1,6 @@
-package de.kreth.mtvandroidhelper2;
+package de.kreth.clubhelperandroid;
+
+import de.kreth.clubhelperandroid.R;
 
 public enum MenuItem {
 	PersonList(R.string.label_menu_personanwesenheit),

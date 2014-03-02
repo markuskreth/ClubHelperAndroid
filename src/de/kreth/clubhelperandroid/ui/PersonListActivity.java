@@ -1,14 +1,14 @@
-package de.kreth.mtvandroidhelper2.ui;
+package de.kreth.clubhelperandroid.ui;
 
 import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
-import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.data.Person;
-import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
-import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
+import de.kreth.clubhelperandroid.data.Person;
+import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
+import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
+import de.kreth.clubhelperandroid.R;
 
 /**
  * An activity representing a list of Personen. This activity has different

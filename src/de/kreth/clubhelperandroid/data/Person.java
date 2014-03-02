@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.data;
+package de.kreth.clubhelperandroid.data;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -70,8 +70,9 @@ public class Person extends PersistentDataObject {
 	public void setMother(Person mother) {
 		this.mother = new Person(mother);
 	}
+	
 	public Calendar getBirthdate() {
-		return (Calendar) birthdate.clone();
+		return (Calendar) birthdate;
 	}
 	
 	public void setBirthdate(Calendar birthdate) {

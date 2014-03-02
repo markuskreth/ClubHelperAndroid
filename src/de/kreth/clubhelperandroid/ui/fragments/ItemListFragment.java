@@ -1,6 +1,6 @@
-package de.kreth.mtvandroidhelper2.ui.fragments;
+package de.kreth.clubhelperandroid.ui.fragments;
 
-import de.kreth.mtvandroidhelper2.MenuItem;
+import de.kreth.clubhelperandroid.MenuItem;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;

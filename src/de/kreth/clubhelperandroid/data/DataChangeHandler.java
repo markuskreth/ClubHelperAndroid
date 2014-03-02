@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.data;
+package de.kreth.clubhelperandroid.data;
 
 public interface DataChangeHandler<T> {
 

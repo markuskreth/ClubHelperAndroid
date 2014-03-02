@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.ui.utils;
+package de.kreth.clubhelperandroid.ui.utils;
 
 public interface FragmentNavigator {
 	void onNavigateBack();

@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.ui.utils;
+package de.kreth.clubhelperandroid.ui.utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -8,8 +8,8 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.data.PersonContact;
+import de.kreth.clubhelperandroid.data.PersonContact;
+import de.kreth.clubhelperandroid.R;
 
 public class DialogDoConnection {
 	private PersonContact contact;

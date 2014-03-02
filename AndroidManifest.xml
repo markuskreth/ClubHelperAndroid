@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.kreth.mtvandroidhelper2"
-    android:versionCode="1"
+    package="de.kreth.clubhelperandroid"
+    android:versionCode="5"
     android:versionName="1.0" >
 
     <uses-sdk
@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="de.kreth.mtvandroidhelper2.ItemListActivity"
+            android:name="de.kreth.clubhelperandroid.ItemListActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,22 +25,22 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="de.kreth.mtvandroidhelper2.ItemDetailActivity"
+            android:name="de.kreth.clubhelperandroid.ItemDetailActivity"
             android:label="@string/title_item_detail"
-            android:parentActivityName="de.kreth.mtvandroidhelper2.ui.fragments.ItemListActivity" >
+            android:parentActivityName="de.kreth.clubhelperandroid.ui.fragments.ItemListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
         <activity
-            android:name="de.kreth.mtvandroidhelper2.ui.PersonListActivity"
+            android:name="de.kreth.clubhelperandroid.ui.PersonListActivity"
             android:label="@string/title_person_list" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
         <activity
-            android:name="de.kreth.mtvandroidhelper2.ui.PersonDetailActivity"
+            android:name="de.kreth.clubhelperandroid.ui.PersonDetailActivity"
             android:label="@string/title_person_detail" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

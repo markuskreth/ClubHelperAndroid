@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2.ui.fragments;
+package de.kreth.clubhelperandroid.ui.fragments;
 
 
 import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_PRENAME;
@@ -29,12 +29,12 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
-import de.kreth.mtvandroidhelper2.Factory;
-import de.kreth.mtvandroidhelper2.R;
-import de.kreth.mtvandroidhelper2.adapter.PersonListAdapter;
-import de.kreth.mtvandroidhelper2.data.Person;
-import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
-import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.Factory;
+import de.kreth.clubhelperandroid.adapter.PersonListAdapter;
+import de.kreth.clubhelperandroid.data.Person;
+import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
+import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.R;
 
 /**
  * A list fragment representing a list of Personen. This fragment also supports

@@ -1,4 +1,4 @@
-package de.kreth.mtvandroidhelper2;
+package de.kreth.clubhelperandroid;
 
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -6,13 +6,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import de.kreth.mtvandroidhelper2.data.Person;
-import de.kreth.mtvandroidhelper2.ui.PersonDetailActivity;
-import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
-import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment;
-import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
-import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
-import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.data.Person;
+import de.kreth.clubhelperandroid.ui.PersonDetailActivity;
+import de.kreth.clubhelperandroid.ui.PersonListActivity;
+import de.kreth.clubhelperandroid.ui.fragments.ItemListFragment;
+import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
+import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
+import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperandroid.R;
 
 /**
  * An activity representing a list of Items. This activity has different
@@ -72,6 +73,22 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		// TODO: If exposing deep links into your app, handle intents here.
 	}
 
+	@Override
+	protected void onDestroy() {
+		Factory.getInstance().shutdown();
+		super.onDestroy();
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(android.view.MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			onNavigateBack();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
 	/**
 	 * Callback method from {@link ItemListFragment.Callbacks} indicating that
 	 * the item with the given ID was selected.
@@ -118,16 +135,6 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		}
 	}
 
-	@Override
-	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
-			onNavigateBack();
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-	
 	private PersonListFragment createFragment(MenuItem menuItem) {
 		switch (menuItem) {
 		case PersonContacts:
