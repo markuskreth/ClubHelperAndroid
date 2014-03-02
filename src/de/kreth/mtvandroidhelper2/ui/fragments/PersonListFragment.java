@@ -34,6 +34,7 @@ import de.kreth.mtvandroidhelper2.R;
 import de.kreth.mtvandroidhelper2.adapter.PersonListAdapter;
 import de.kreth.mtvandroidhelper2.data.Person;
 import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
+import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
 
 /**
  * A list fragment representing a list of Personen. This fragment also supports
@@ -83,7 +84,7 @@ public class PersonListFragment extends Fragment {
 	 * implement. This mechanism allows activities to be notified of item
 	 * selections.
 	 */
-	public interface Callbacks {
+	public interface Callbacks extends FragmentNavigator {
 		/**
 		 * Callback for when an item has been selected.
 		 */
@@ -97,6 +98,9 @@ public class PersonListFragment extends Fragment {
 	private static Callbacks sDummyCallbacks = new Callbacks() {
 		@Override
 		public void onPersonSelected(Person person) {}
+
+		@Override
+		public void onNavigateBack() {}
 
 	};
 
@@ -188,8 +192,11 @@ public class PersonListFragment extends Fragment {
 				mCallbacks.onPersonSelected(adapter.getItem(position));	
 			}
 		});
-		boolean activateOnItemClick = getArguments().getBoolean(ActivateOnItemClick, false);
-		setActivateOnItemClick(activateOnItemClick);
+		Bundle arguments = getArguments();
+		if(arguments != null) {
+			boolean activateOnItemClick = arguments.getBoolean(ActivateOnItemClick, false);
+			setActivateOnItemClick(activateOnItemClick);
+		}
 	}
 
 	private void setupAdapter() {

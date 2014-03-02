@@ -1,8 +1,10 @@
 package de.kreth.mtvandroidhelper2.ui;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.MenuItem;
 import de.kreth.mtvandroidhelper2.R;
 import de.kreth.mtvandroidhelper2.data.Person;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
@@ -26,31 +28,12 @@ import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
 public class PersonListActivity extends FragmentActivity implements
 		PersonListFragment.Callbacks {
 
-	/**
-	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-	 * device.
-	 */
-	private boolean mTwoPane;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_person_list);
-
-//		if (findViewById(R.id.person_detail_container) != null) {
-//			// The detail container view will be present only in the
-//			// large-screen layouts (res/values-large and
-//			// res/values-sw600dp). If this view is present, then the
-//			// activity should be in two-pane mode.
-//			mTwoPane = true;
-//
-//			// In two-pane mode, list items should be given the
-//			// 'activated' state when touched.
-//			((PersonListFragment) getSupportFragmentManager().findFragmentById(
-//					R.id.person_list)).setActivateOnItemClick(true);
-//		}
-
-		// TODO: If exposing deep links into your app, handle intents here.
+		ActionBar actionBar = getActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 
 	/**
@@ -59,24 +42,29 @@ public class PersonListActivity extends FragmentActivity implements
 	 */
 	@Override
 	public void onPersonSelected(Person person) {
-		if (mTwoPane) {
-			// In two-pane mode, show the detail view in this activity by
-			// adding or replacing the detail fragment using a
-			// fragment transaction.
-			Bundle arguments = new Bundle();
-			arguments.putInt(PersonDetailFragment.ARG_PERSON_ID, person.getId());
-			PersonDetailFragment fragment = new PersonDetailFragment();
-			fragment.setArguments(arguments);
-			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.person_detail_container, fragment).commit();
 
-		} else {
-			// In single-pane mode, simply start the detail activity
-			// for the selected item ID.
-			Intent detailIntent = new Intent(this, PersonDetailActivity.class);
-			detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, person.getId());
-			startActivity(detailIntent);
+		Intent detailIntent = new Intent(this, PersonDetailActivity.class);
+		int personId = -1;
+		if(person != null)
+			personId = person.getId();
+		detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, personId);
+		startActivity(detailIntent);
+		
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			onNavigateBack();
+			return true;
 		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	public void onNavigateBack() {
+		onBackPressed();
 	}
 
 }

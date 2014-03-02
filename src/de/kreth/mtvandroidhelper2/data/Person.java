@@ -10,6 +10,15 @@ public class Person extends PersistentDataObject {
 	private Person mother;
 	private Calendar birthdate;
 	
+	public Person(Person toClone){
+		super(toClone.getId());
+		this.preName = toClone.preName;
+		this.surName = toClone.surName;
+		this.father = toClone.getFather();
+		this.mother = toClone.getMother();
+		this.birthdate = toClone.getBirthdate();
+	}
+	
 	public Person(int id) {
 		super(id);
 	}
@@ -30,20 +39,39 @@ public class Person extends PersistentDataObject {
 	public void setSurName(String surName) {
 		this.surName = surName;
 	}
+	
+	/**
+	 * Delivers Clone of Father
+	 * @return Clone of Father
+	 */
 	public Person getFather() {
+		if(father != null)
+			return new Person(father);
 		return father;
 	}
+	
+	/**
+	 * @param father
+	 */
 	public void setFather(Person father) {
-		this.father = father;
+		this.father = new Person(father);
 	}
+	
+	/**
+	 * Delivers Clone of Mother
+	 * @return	Clone of Mother
+	 */
 	public Person getMother() {
+		if(mother != null)
+			return new Person(mother);
 		return mother;
 	}
+	
 	public void setMother(Person mother) {
-		this.mother = mother;
+		this.mother = new Person(mother);
 	}
 	public Calendar getBirthdate() {
-		return birthdate;
+		return (Calendar) birthdate.clone();
 	}
 	
 	public void setBirthdate(Calendar birthdate) {

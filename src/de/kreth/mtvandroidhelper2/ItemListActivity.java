@@ -6,13 +6,13 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import de.kreth.mtvandroidhelper2.R;
 import de.kreth.mtvandroidhelper2.data.Person;
 import de.kreth.mtvandroidhelper2.ui.PersonDetailActivity;
 import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
 import de.kreth.mtvandroidhelper2.ui.fragments.ItemListFragment;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonDetailFragment;
 import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
+import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
 
 /**
  * An activity representing a list of Items. This activity has different
@@ -29,7 +29,7 @@ import de.kreth.mtvandroidhelper2.ui.fragments.PersonListFragment;
  * This activity also implements the required {@link ItemListFragment.Callbacks}
  * interface to listen for item selections.
  */
-public class ItemListActivity extends FragmentActivity implements ItemListFragment.Callbacks, PersonListFragment.Callbacks {
+public class ItemListActivity extends FragmentActivity implements ItemListFragment.Callbacks, PersonListFragment.Callbacks, FragmentNavigator {
 
 	/**
 	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -85,6 +85,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			// In single-pane mode, simply start the detail activity
 			// for the selected item ID.
 			Intent detailIntent = new Intent(this, PersonListActivity.class);
+			detailIntent.putExtra(PersonListFragment.ActivateOnItemClick, false);
 			startActivity(detailIntent);
 			break;
 		case 2:
@@ -116,6 +117,16 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		}
 	}
 
+	@Override
+	public boolean onOptionsItemSelected(android.view.MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			onNavigateBack();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
 	private PersonListFragment createFragment(MenuItem menuItem) {
 		switch (menuItem) {
 		case PersonContacts:
@@ -147,6 +158,15 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, person.getId());
 			startActivity(detailIntent);
 		}
+	}
+
+	@Override
+	public void onNavigateBack() {
+		if(mPaneCount>1)
+			getFragmentManager().popBackStack();
+		else
+			onBackPressed();
+
 	}
 
 }

@@ -1,16 +1,19 @@
 package de.kreth.mtvandroidhelper2.ui.fragments;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -54,6 +57,7 @@ import de.kreth.mtvandroidhelper2.data.PersonContact;
 import de.kreth.mtvandroidhelper2.data.PersonPersisterImpl;
 import de.kreth.mtvandroidhelper2.ui.PersonDetailActivity;
 import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
+import de.kreth.mtvandroidhelper2.ui.utils.FragmentNavigator;
 
 /**
  * A fragment representing a single Person detail screen. This fragment is
@@ -62,9 +66,10 @@ import de.kreth.mtvandroidhelper2.ui.PersonListActivity;
  */
 public class PersonDetailFragment extends Fragment implements OnClickListener {
 	
-	public static final String ARG_PERSON_ID = "item_id";
+	public static final String ARG_PERSON_ID = "person_id";
 	public static final int BTN_DEL_CONTACT_ID = 456123;
 	
+	private Person personOriginal = null;
 	private Person person = null;
 
 	private TextView txtFullNameView;
@@ -75,12 +80,9 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private View rootView;
 
-//	private DataChangeHandler<Person> personHandler;
-//
-//	private ContactListHolder contactHandler;
-
 	private TableLayout table;
 
+	private List<PersonContact> contactsOriginal;
 	private List<PersonContact> contacts;
 
 	private int contactCount;
@@ -88,6 +90,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	private ViewGroup buttonBarDropContact;
 	private PhoneNumberUtil phoneNumberUtil;
 	private PersonPersisterImpl persister;
+	private FragmentNavigator navigator = FragmentNavigator.DUMMY;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -117,6 +120,20 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		
 		return rootView;
 	}
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		if(! (activity instanceof FragmentNavigator)){
+			throw new IllegalStateException(activity.getClass().getSimpleName() + " must be an Instance of" + FragmentNavigator.class.getSimpleName());
+		}
+		this.navigator  = (FragmentNavigator) activity;
+	}
+	
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		this.navigator = FragmentNavigator.DUMMY;
+	}
 	
 	private void setupDragAndDrop() {
 		buttonBarMain = (ViewGroup) rootView.findViewById(R.id.buttonBarMain);
@@ -133,9 +150,12 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		
 		if(contacts != null){
 			table.removeViews(index, contactCount);
+			contacts = persister.getContactsFor(person);
+		} else {
+			contactsOriginal = persister.getContactsFor(person);
+			contacts = new ArrayList<PersonContact>(contactsOriginal);
 		}
 		
-		contacts = persister.getContactsFor(person);
 		contactCount = contacts.size();
 		
 		for(PersonContact con: contacts){
@@ -177,9 +197,9 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	public void deleteTableRowContact(TableRow contactRow) {
 		Object tag = contactRow.getTag();
-//		int contactIdToDelete = (Integer) tag;
-		throw new UnsupportedOperationException("Delete noch nicht implementiert! contactIdToDelete=" + tag);
-//		contactHandler.deleteData(contactIdToDelete);
+		int contactIdToDelete = (Integer) tag;
+		PersonContact toDelete = findContactWithId(contactIdToDelete);
+		contacts.remove(toDelete);
 	}
 	
 	private int findIndexOfRowWithId(int idOfRow) {
@@ -254,13 +274,43 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private void setupPerson(int personId) {
 
-		person = persister.getPersonById(personId);		
+		personOriginal = persister.getPersonById(personId);
+		person = new Person(personOriginal);
 		Log.i(mTag, "Details von " + person);
 		txtFullNameView.setText(getNameOfPerson(person));
 		updateBirthdayValues();
 		
 	}
 
+	public boolean checkIfPersonWasEdited() {
+		boolean personMustBeStored = personOriginal.getBirthdate().compareTo(personOriginal.getBirthdate()) != 0;
+		personMustBeStored |= nameHasChanged();
+		personMustBeStored |= contactsHaveChanged();
+		return personMustBeStored;
+	}
+	
+	private boolean contactsHaveChanged() {
+		boolean retval = false;
+		List<PersonContact> editedData = contacts;
+		if(contactsOriginal.size() != editedData.size()){
+			retval = true;
+		} else {
+			for(int i=0; i<contactsOriginal.size(); i++){
+				if( ! contactsOriginal.get(i).equals(editedData.get(i))){
+					retval = true;
+					break;
+				}
+			}
+		}
+		return retval;
+	}
+
+	private boolean nameHasChanged() {
+		boolean namesAreSame = person.getPreName().contentEquals(personOriginal.getPreName()) 
+				&& person.getSurName().contentEquals(personOriginal.getSurName());
+		return ! namesAreSame;
+	}
+	
 	public void updateBirthdayValues() {
         txtbirthday.setText(DateFormat.getDateInstance().format(person.getBirthdate().getTime()));		
 	}
@@ -377,22 +427,31 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 				break;
 			case DragEvent.ACTION_DROP:
 
-				TableRow row = (TableRow)event.getLocalState();
+				final TableRow row = (TableRow)event.getLocalState();
 				
 				if(v.getId()==R.id.btnItemDelete){
-					row.setVisibility(View.GONE);
 					deleteTableRowContact(row);
+					getActivity().runOnUiThread(new Runnable() {
+						
+						@Override
+						public void run() {
+							row.setVisibility(View.GONE);
+						}
+					});
 				} else if (v.getId()==R.id.btnItemEdit){
 
 					int contactId = (Integer) row.getTag();
 					
-					PersonContact contact = findContactWithId(contactId);
+					final PersonContact contact = findContactWithId(contactId);
+					contacts.remove(contact);	// TODO Der Dialog sollte die Liste nicht verändern, wenn keine Änderungen vorgenommen wurden.
+					getActivity().runOnUiThread(new Runnable() {
+						
+						@Override
+						public void run() {
+							showCreateContactDialog(contact.getType(), contact.getValue());
+						}
+					});
 					
-					String txt = contact.getId() + ": " + contact.getType() + " - " + contact.getValue();
-					AlertDialog.Builder bld= new AlertDialog.Builder(getActivity());
-					bld.setTitle("Edit " + txt);
-					bld.setMessage(txt);
-					bld.show();
 				}
 				break;
 			}
@@ -445,11 +504,11 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		switch (v.getId()) {
 		case R.id.buttonOk:
 			persister.storePerson(person);
-			getFragmentManager().popBackStack();
+			navigator.onNavigateBack();
 			break;
 
 		case R.id.buttonCancel:
-			getFragmentManager().popBackStack();
+			goBack();
 			break;
 
 		case R.id.btnEditBirthday:
@@ -460,7 +519,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 			break;
 		case PersonDetailFragment.BTN_DEL_CONTACT_ID:
 			int contactId = ((Integer)v.getTag()).intValue();
-			Log.w(mTag, "nicht implementiert, lösche Contakt id=" + contactId);
+			Log.w(mTag, "not implemented, Contakt to delete: id=" + contactId);
 //			personContactHolder.deleteData(contactId);
 			break;
 		default:
@@ -476,6 +535,36 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		int dayOfMonth = birthdate.get(Calendar.DAY_OF_MONTH);
 		DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), createDateSetListener(), year, monthOfYear, dayOfMonth);
 		datePickerDialog.show();
+	}
+
+	private void goBack(){
+
+		if(! checkIfPersonWasEdited())
+			navigator.onNavigateBack();
+		else{
+			askUserForDiscard();
+		}
+	}
+	
+	private void askUserForDiscard() {
+		
+		AlertDialog.OnClickListener listener = new AlertDialog.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == AlertDialog.BUTTON_POSITIVE){
+					// Änderungen verwerfen
+					navigator.onNavigateBack();
+				}
+			}
+		};
+		
+		AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
+		dlgBuilder.setIcon(android.R.drawable.ic_dialog_alert);
+		dlgBuilder.setMessage(R.string.confirm_discard);
+		dlgBuilder.setPositiveButton(R.string.label_yes, listener);
+		dlgBuilder.setNegativeButton(R.string.label_no, listener);
+		dlgBuilder.show();
 	}
 
 	private OnDateSetListener createDateSetListener(){
@@ -530,14 +619,14 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 					PhoneNumber exampleNumber = phoneNumberUtil.getExampleNumberForType(Locale.getDefault().getCountry(), phoneNumberType);
 					txt.setHint(phoneNumberUtil.format(exampleNumber, PhoneNumberFormat.NATIONAL));
 					txt.addTextChangedListener(phoneNumberFormattingTextWatcher);
-					
-					try{
-						PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
-						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
-						
-					} catch (Exception e){
-						Log.w(mTag, "Konnte text nicht als Telefonnummer formatieren: " + txt.getText(), e);
-					}
+					if(txt.getText() != null && txt.getText().length()!=0)
+						try{
+							PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
+							txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
+							
+						} catch (Exception e){
+							Log.w(mTag, "Konnte text nicht als Telefonnummer formatieren: " + txt.getText(), e);
+						}
 					break;
 				default:
 					break;
