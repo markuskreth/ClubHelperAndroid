@@ -7,6 +7,11 @@ public class Attendance extends PersistentDataObject {
 	private Person person;
 	private Calendar date;
 
+	@Override
+	public String toString() {
+		return date.getTime() + " - " + person;
+	}
+	
 	public Attendance(long insertId, Person person, Calendar date) {
 		super(insertId);
 		this.person = person;

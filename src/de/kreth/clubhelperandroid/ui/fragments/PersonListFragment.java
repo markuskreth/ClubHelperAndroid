@@ -505,7 +505,7 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		if(isChecked) {
 			toStore = persister.storeAttendance(attendance, this.attendenceDate);
 		} else {
-			toStore = persister.storeAttendance(attendance, this.attendenceDate);
+			toStore = persister.storeAttendance(attendance, null);
 			
 		}
 		attendancesOriginal.add(toStore);

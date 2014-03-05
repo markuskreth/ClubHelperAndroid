@@ -51,9 +51,9 @@ public class PersonDetailActivity extends FragmentActivity implements FragmentNa
 		if (savedInstanceState == null) {
 
 			Intent intent = getIntent();
-			int personId = intent.getIntExtra(PersonDetailFragment.ARG_PERSON_ID, -1);
+			long personId = intent.getLongExtra(PersonDetailFragment.ARG_PERSON_ID, -1);
 			Bundle args = new Bundle();
-			args.putInt(PersonDetailFragment.ARG_PERSON_ID, personId);
+			args.putLong(PersonDetailFragment.ARG_PERSON_ID, personId);
 			
 			fragment = new PersonDetailFragment();
 			fragment.setArguments(args);
