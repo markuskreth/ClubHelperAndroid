@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import de.kreth.clubhelperandroid.data.Person;
 import de.kreth.clubhelperandroid.ui.PersonDetailActivity;
 import de.kreth.clubhelperandroid.ui.PersonListActivity;
 import de.kreth.clubhelperandroid.ui.fragments.ItemListFragment;
@@ -14,6 +13,7 @@ import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
 import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.data.Person;
 
 /**
  * An activity representing a list of Items. This activity has different
@@ -166,10 +166,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	@Override
 	public void onNavigateBack() {
 		if(mPaneCount>1)
-			getFragmentManager().popBackStack();
+			getSupportFragmentManager().popBackStack();
 		else
 			onBackPressed();
-
 	}
 
 }

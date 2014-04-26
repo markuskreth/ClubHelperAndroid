@@ -16,6 +16,7 @@
     <string name="action_addItem">Hinzufügen</string>
     <string name="action_removeItem">Löschen</string>
     <string name="action_searchItem">Suchen</string>
+    <string name="action_setDate">Datum setzen</string>
     <string name="action_settings">Einstellungen</string>
     <string name="addPerson">Hinzufügen</string>
     <string name="space_comma">", "</string>

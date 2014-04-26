@@ -20,7 +20,7 @@ public class Factory {
 	private static final String DB_NAME = "database.sqlite";
 	private static final String TAG = "MTV";
 	
-	private MtvSqLiteOpenHelper sqliteHelper;
+	protected MtvSqLiteOpenHelper sqliteHelper;
 	private SQLiteDatabase db;
 	private Resources resources;
 	

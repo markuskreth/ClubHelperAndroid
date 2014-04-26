@@ -1,13 +1,9 @@
 package de.kreth.clubhelperandroid.ui.fragments;
 
 
-import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_PRENAME;
-import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.COLUMN_PERSON_SURNAME;
-
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,20 +28,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import de.kreth.clubhelperandroid.Factory;
-import de.kreth.clubhelperandroid.adapter.PersonAttendenceListAdapter;
-import de.kreth.clubhelperandroid.adapter.PersonListAdapter;
-import de.kreth.clubhelperandroid.data.Attendance;
-import de.kreth.clubhelperandroid.data.Person;
-import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
-import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
 import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperandroid.ui.controller.PersonListController;
+import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
+import de.kreth.clubhelperbusiness.data.Person;
 
 /**
  * A list fragment representing a list of Personen. This fragment also supports
@@ -56,9 +46,10 @@ import de.kreth.clubhelperandroid.R;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class PersonListFragment extends Fragment implements OnCheckedChangeListener {
+public class PersonListFragment extends Fragment {
 
 	public static final String ActivateOnItemClick = "ActivateOnItemClick to Set";
+	
 	public enum PERSON_LIST_MODE {
 		NORMAL,
 		ATTENDANCE
@@ -81,10 +72,6 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 	 */
 	private int mActivatedPosition = ListView.INVALID_POSITION;
 
-	private PersonListAdapter adapterNormal;
-
-	private PersonPersisterImpl persister;
-
 	private EditText filter;
 
 	private ViewGroup buttonBarDropTarget;
@@ -94,15 +81,10 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 	private View rootView;
 
 	private ListView listView;
-
-	private PERSON_LIST_MODE mode = PERSON_LIST_MODE.NORMAL;
-	private Calendar attendenceDate;
-
-	private PersonAttendenceListAdapter adapterAttendence;
-
-	private List<Attendance> attendancesOriginal;
-
+	
 	private TextView txtTitle;
+
+	private PersonListController controller;
 	
 	/**
 	 * A callback interface that all activities containing this fragment must
@@ -130,7 +112,12 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 	};
 
 	public void onCreateOptionsMenu(Menu menu, android.view.MenuInflater inflater) {
-        inflater.inflate(R.menu.data_view, menu);
+		
+		PERSON_LIST_MODE mode = controller.getMode();
+		if(mode  != null && mode == PERSON_LIST_MODE.ATTENDANCE)
+	        inflater.inflate(R.menu.attendance_view, menu);
+		else
+			inflater.inflate(R.menu.data_view, menu);
 	};
 
 	@Override
@@ -138,30 +125,27 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 			Bundle savedInstanceState) {
 		rootView = inflater.inflate(R.layout.fragment_person_list, null);
 		Bundle arguments = getArguments();
-		
+				
 		if(arguments != null) {
 			String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
 			if(modeName != null && ! modeName.isEmpty()){
-				this.mode = PERSON_LIST_MODE.valueOf(modeName);
+				controller.setMode(PERSON_LIST_MODE.valueOf(modeName));
 			}
 		}
-		attendenceDate = new GregorianCalendar();
-		attendenceDate.set(Calendar.HOUR_OF_DAY, 0);
-		attendenceDate.set(Calendar.MINUTE, 0);
-		attendenceDate.set(Calendar.SECOND, 0);
-		attendenceDate.set(Calendar.MILLISECOND, 0);
+		
 		recreate();
 		return rootView;
 	}
 	
 	public void setMode(PERSON_LIST_MODE mode) {
-		this.mode = mode;
+		controller.setMode(mode);
 		recreate();
 	}
 	
 	private void recreate() {
 		initComponents();
-		setupAdapter();
+		ListItemDragOnLongClickListener listener = new ListItemDragOnLongClickListener();
+		controller.setupAdapter(getActivity(), listView, listener);
 	}
 
 	@Override
@@ -170,7 +154,9 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		case R.id.action_addItem:
 			mCallbacks.onPersonSelected(null);
 			break;
-
+		case R.id.action_setDate:
+			showAttendanceDateDialog();
+			break;
 		default:
 			break;
 		}
@@ -178,25 +164,6 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		return super.onOptionsItemSelected(item);
 	}
 	
-	private void filterPerson(String filter ) {
-		String whereClause;
-		if(filter == null || filter.trim().isEmpty()){
-			whereClause = null;			
-		} else {
-			whereClause = COLUMN_PERSON_PRENAME + " like '" + filter + "%' OR " + COLUMN_PERSON_SURNAME + " like '" + filter + "%'";
-		}
-		if(mode == PERSON_LIST_MODE.NORMAL) {
-			List<Person> personsWhere = persister.getPersonsWhere(whereClause);
-			adapterNormal.clear();
-			adapterNormal.addAll(personsWhere);
-		} else if (mode == PERSON_LIST_MODE.ATTENDANCE) {
-			adapterAttendence.clear();
-			attendancesOriginal = persister.getAttendancesWhere(whereClause, this.attendenceDate);
-			adapterAttendence.setDate(attendenceDate);
-			adapterAttendence.addAll(attendancesOriginal);
-		}
-	}
-
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
 	 * fragment (e.g. upon screen orientation changes).
@@ -209,8 +176,8 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		super.onCreate(savedInstanceState);
 		
 	    setHasOptionsMenu(true);
+		controller = new PersonListController();
 		
-		persister = new PersonPersisterImpl(Factory.getInstance().getDatabase());
 	}
 
 	private void initComponents() {
@@ -240,14 +207,14 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 
 		txtTitle = (TextView) rootView.findViewById(R.id.textTitle);
 		
-		if(this.mode != PERSON_LIST_MODE.ATTENDANCE) {
+		if(controller.getMode() != PERSON_LIST_MODE.ATTENDANCE) {
 			listView.setOnItemClickListener(new OnItemClickListener() {
 	
 				@Override
 				public void onItemClick(AdapterView<?> arg0, View view, int position,
 						long id) {
 					
-					mCallbacks.onPersonSelected(adapterNormal.getItem(position));	
+					mCallbacks.onPersonSelected(controller.getPersonAt(position));	
 				}
 			});
 		} else {
@@ -257,24 +224,6 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		if(arguments != null) {
 			boolean activateOnItemClick = arguments.getBoolean(ActivateOnItemClick, false);
 			setActivateOnItemClick(activateOnItemClick);
-		}
-	}
-
-	private void setupAdapter() {
-		switch (mode) {
-		case ATTENDANCE:
-			attendancesOriginal = persister.getAttendancesWhere("", this.attendenceDate);
-			adapterAttendence = new PersonAttendenceListAdapter(getActivity(), attendancesOriginal, this);
-			listView.setAdapter(adapterAttendence);
-			break;
-		case NORMAL:
-		default:
-			adapterNormal = new PersonListAdapter(getActivity(), persister.getAllPersons());
-			listView.setAdapter(adapterNormal);
-			ListItemDragOnLongClickListener longClickListener = new ListItemDragOnLongClickListener();
-			listView.setOnItemLongClickListener(longClickListener);
-			listView.setLongClickable(true);
-			break;
 		}
 	}
 
@@ -307,29 +256,34 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 	@Override
 	public void onResume() {
 		super.onResume();
-		if(mode == PERSON_LIST_MODE.ATTENDANCE){
+		if(controller.getMode() == PERSON_LIST_MODE.ATTENDANCE){
 			showAttendanceDateDialog();
 		}
+		refreshList();
 	}
 
 	private void showAttendanceDateDialog() {
 		
-		int year = attendenceDate.get(Calendar.YEAR);
-		int monthOfYear = attendenceDate.get(Calendar.MONTH);
-		int dayOfMonth = attendenceDate.get(Calendar.DAY_OF_MONTH);
+		controller.storeCurrentValues();
+		final Calendar attendanceDate = controller.getAttendanceDate();
+		int year = attendanceDate.get(Calendar.YEAR);
+		int monthOfYear = attendanceDate.get(Calendar.MONTH);
+		int dayOfMonth = attendanceDate.get(Calendar.DAY_OF_MONTH);
 		DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
 				createDateSetListener(), year, monthOfYear, dayOfMonth);
 		datePickerDialog.show();
 	}
 
 	private OnDateSetListener createDateSetListener() {
+		final SimpleDateFormat df = new SimpleDateFormat("cc, dd.MM.yyyy", Locale.GERMANY);
+		
 		OnDateSetListener listener = new OnDateSetListener() {
 			
 			@Override
 			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-				attendenceDate.set(year, monthOfYear, dayOfMonth);
+				controller.setDate(year, monthOfYear, dayOfMonth);
 				
-				String title = getActivity().getString(R.string.title_activity_attendance) + " " + DateFormat.getDateInstance().format(attendenceDate.getTime());
+				String title = getActivity().getString(R.string.title_activity_attendance) + " " + df.format(controller.getAttendanceDate().getTime());
 				txtTitle.setText(title);
 				refreshList();
 			}
@@ -345,7 +299,13 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		mCallbacks = sDummyCallbacks;
 		
 	}
-
+	
+	@Override
+	public void onPause() {
+		controller.storeCurrentValues();
+		super.onPause();
+	}
+	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -377,8 +337,12 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		mActivatedPosition = position;
 	}
 
+	public PersonListController getController() {
+		return controller;
+	}
+	
 	public void refreshList(){
-		filterPerson(PersonListFragment.this.filter.getText().toString());
+		controller.filterPerson(PersonListFragment.this.filter.getText().toString());
 	}
 
 	public class ListItemDragOnLongClickListener implements OnItemLongClickListener {
@@ -386,7 +350,8 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		@Override
 		public boolean onItemLongClick(AdapterView<?> arg0, View childView,
 				int position, long id) {
-			Person person = adapterNormal.getItem(position);
+			
+			Person person = controller.getPersonAt(position);
 
 			String text = person.toString();
 			ClipData.Item item = new ClipData.Item(text);
@@ -412,7 +377,7 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == AlertDialog.BUTTON_POSITIVE){
-					persister.deletePerson(pers);
+					controller.deletePerson(pers);
 					refreshList();
 				}
 			}
@@ -465,7 +430,7 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 				
 				int pos = listView.getPositionForView(draggedView);
 				
-				final Person person = (Person) adapterNormal.getItem(pos);
+				final Person person = controller.getPersonAt(pos);
 				
 				if(v.getId()==R.id.btnItemDelete){
 					activity.runOnUiThread(new Runnable() {
@@ -495,21 +460,5 @@ public class PersonListFragment extends Fragment implements OnCheckedChangeListe
 		}
 		
 	}
-
-
-	@Override
-	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		int position = buttonView.getId();
-		Attendance attendance = attendancesOriginal.remove(position);
-		Attendance toStore;
-		if(isChecked) {
-			toStore = persister.storeAttendance(attendance, this.attendenceDate);
-		} else {
-			toStore = persister.storeAttendance(attendance, null);
-			
-		}
-		attendancesOriginal.add(toStore);
-		
-	}
-
+	
 }

@@ -5,9 +5,15 @@ import static de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+
+import de.kreth.clubhelperbusiness.data.Attendance;
+import de.kreth.clubhelperbusiness.data.ContactType;
+import de.kreth.clubhelperbusiness.data.Person;
+import de.kreth.clubhelperbusiness.data.PersonContact;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -26,7 +32,7 @@ public class PersonPersisterImpl {
 	private SQLiteStatement stmInsertPersonContracts;
 	private SQLiteStatement stmDeletePersonContracts;
 	private SQLiteStatement stmInsertAttendance;
-	private SQLiteStatement stmUpdateAttendance;
+	private SQLiteStatement stmDeleteAttendences;
 
 	public PersonPersisterImpl(SQLiteDatabase db) {
 		this.db = db;
@@ -124,49 +130,31 @@ public class PersonPersisterImpl {
 	 * @param attendenceDate 
 	 * @return
 	 */
-	public Attendance storeAttendance(Attendance a, Calendar attendenceDate){
+	private Attendance storeAttendance(Attendance a, Calendar attendenceDate){
 		if(a.getPerson().isPersistent()){
-			if(a.isPersistent())
-				return updateAttendance(a, attendenceDate);
-			else
-				return insertAttendance(a, attendenceDate);
+			return insertAttendance(a, attendenceDate);
 		} else
 			throw new IllegalStateException("Person " + a.getPerson() + " must be persistent before storeAttendance");
 	}
 	
-	private Attendance updateAttendance(Attendance a, Calendar attendenceDate) {
-		if (stmUpdateAttendance == null) {
-			String sql = "UPDATE " + TABLE_ATTENDANCE + " SET " + COLUMN_ATTENDANCE_DATE + "=? WHERE " + COLUMN_ID + "=?";
-			stmUpdateAttendance = db.compileStatement(sql);
-		}
-		if (attendenceDate == null && a.getDate() != null){
-			String whereClause = COLUMN_PERSON_FK  + "=" + a.getPerson().getId() + " AND " + COLUMN_ATTENDANCE_DATE + "=" + a.getDate().getTimeInMillis();
-			db.delete(TABLE_ATTENDANCE, whereClause, null);
-			a.getDate().setTimeInMillis(0);
-		} else{
-			stmUpdateAttendance.bindLong(1, attendenceDate.getTimeInMillis());
-			stmUpdateAttendance.bindLong(2, a.getId());
-			int executeUpdateDelete = stmUpdateAttendance.executeUpdateDelete();
+	private Attendance insertAttendance(Attendance a, Calendar attendenceDate) {
+		long insertId = a.getId();
+		
+		if(attendenceDate != null){
 			
-			if(executeUpdateDelete != 1)
-				throw new IllegalStateException("While updateing " + TABLE_ATTENDANCE + " with id=" + a.getId() + " instead of 1 there were updates on rowCount=" + executeUpdateDelete);
-
-			a.getDate().setTimeInMillis(attendenceDate.getTimeInMillis());
+			if (stmInsertAttendance == null) {
+				String sql = "INSERT INTO " + TABLE_ATTENDANCE + " (" + COLUMN_PERSON_FK + "," + COLUMN_ATTENDANCE_DATE + ") VALUES (?,?)";
+				stmInsertAttendance = db.compileStatement(sql);
+			}
+	
+			stmInsertAttendance.bindLong(1, a.getPerson().getId());
+			if(attendenceDate != null)
+				stmInsertAttendance.bindLong(2, attendenceDate.getTimeInMillis());
+			insertId = stmInsertAttendance.executeInsert();
 		}
 		
-		return a;
-	}
-
-	private Attendance insertAttendance(Attendance a, Calendar attendenceDate) {
-		if (stmInsertAttendance == null) {
-			String sql = "INSERT INTO " + TABLE_ATTENDANCE + " (" + COLUMN_PERSON_FK + "," + COLUMN_ATTENDANCE_DATE + ") VALUES (?,?)";
-			stmInsertAttendance = db.compileStatement(sql);
-		}
-
-		stmInsertAttendance.bindLong(1, a.getPerson().getId());
-		if(attendenceDate != null)
-			stmInsertAttendance.bindLong(2, attendenceDate.getTimeInMillis());
-		long insertId = stmInsertAttendance.executeInsert();
+		if(insertId<0)
+			return new Attendance(a.getPerson(), attendenceDate);
 		
 		return new Attendance(insertId, a.getPerson(), attendenceDate);
 	}
@@ -208,25 +196,31 @@ public class PersonPersisterImpl {
 		return p;
 	}
 
-	public void storePerson(Person person){
+	/**
+	 * Speichert die Person und liefert eine ggf. aktualisierte Person zurück.
+	 * @param person
+	 * @return
+	 */
+	public Person storePerson(Person person){
 		if(person.isPersistent())
-			updatePerson(person);
+			return updatePerson(person);
 		else
-			insertPerson(person);
+			return insertPerson(person);
 	}
 	
-	private void updatePerson(Person person) {
+	private Person updatePerson(Person person) {
 		String whereClause = COLUMN_ID + "=?";
 		String[] whereArgs = {String.valueOf(person.getId())};
 		ContentValues contentVal = personToContent(person);
 		int update = db.update(TABLE_PERSON, contentVal, whereClause, whereArgs);
 		if(update != 1)
 			throw new IllegalStateException("Beim Update wurde keine Zeile geändert! Anzahl zeilen=" + update);
+		return person;
 	}
 
-	private void insertPerson(Person person) {
+	private Person insertPerson(Person person) {
 		long insert = db.insert(TABLE_PERSON, null, personToContent(person));
-		person.setId((int)insert);
+		return new Person(person, insert);
 	}
 
 	private ContentValues personToContent(Person person){
@@ -247,13 +241,19 @@ public class PersonPersisterImpl {
 		}
 	}
 
-	public void storePersonContacts(List<PersonContact> data) {
+	/**
+	 * Speichert die Daten und liefert die aktualisierten Daten zurück.
+	 * @param data
+	 * @return
+	 */
+	public List<PersonContact> storePersonContacts(List<PersonContact> data) {
 		
 		deletePersonContacts(data);
-		
+		List<PersonContact> result = new ArrayList<PersonContact>();
 		for(PersonContact con: data){
-			insertPersonContacts(con);
+			result.add(insertPersonContacts(con));
 		}
+		return result;
 	}
 
 	public void deletePersonContacts(List<PersonContact> data) {
@@ -273,13 +273,13 @@ public class PersonPersisterImpl {
 		
 	}
 
-	private void insertPersonContacts(PersonContact con) {
+	private PersonContact insertPersonContacts(PersonContact con) {
 		secureStmInsertPersonContractsExists();
 		stmInsertPersonContracts.bindLong(1, con.getPersonId());
 		stmInsertPersonContracts.bindString(2, con.getType().name());
 		stmInsertPersonContracts.bindString(3, con.getValue());
-		int executeInsert = (int) stmInsertPersonContracts.executeInsert();
-		con.setId(executeInsert);
+		long executeInsert = stmInsertPersonContracts.executeInsert();
+		return new PersonContact(executeInsert, con.getPersonId(), con.getType(), con.getValue());
 	}
 
 	private void secureStmInsertPersonContractsExists() {
@@ -292,6 +292,25 @@ public class PersonPersisterImpl {
 					") VALUES (?,?,?)";
 			stmInsertPersonContracts = db.compileStatement(sql);
 		}
+	}
+
+	public void storeAttendances(Calendar attendenceDate, Collection<Attendance> attendences) {
+		deleteAttendences(attendenceDate);
+		
+		for(Attendance a: attendences) {
+			storeAttendance(a, attendenceDate);
+		}
+	}
+
+	private void deleteAttendences(Calendar attendenceDate) {
+
+		if(stmDeleteAttendences == null){
+			String sql = "DELETE FROM " + TABLE_ATTENDANCE + " WHERE " + COLUMN_ATTENDANCE_DATE + "=?";
+			stmDeleteAttendences = db.compileStatement(sql);
+		}
+		
+		stmDeleteAttendences.bindLong(1, attendenceDate.getTimeInMillis());
+		stmDeleteAttendences.executeUpdateDelete();
 	}
 
 }

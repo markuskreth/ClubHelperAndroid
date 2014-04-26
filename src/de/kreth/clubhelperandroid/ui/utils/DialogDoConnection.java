@@ -8,8 +8,8 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import de.kreth.clubhelperandroid.data.PersonContact;
 import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.data.PersonContact;
 
 public class DialogDoConnection {
 	private PersonContact contact;

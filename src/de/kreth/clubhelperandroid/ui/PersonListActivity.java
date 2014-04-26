@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import de.kreth.clubhelperandroid.R;
-import de.kreth.clubhelperandroid.data.Person;
 import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
+import de.kreth.clubhelperbusiness.data.Person;
 
 /**
  * An activity representing a list of Personen. This activity has different
@@ -28,6 +28,8 @@ import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
 public class PersonListActivity extends FragmentActivity implements
 		PersonListFragment.Callbacks {
 
+	private PersonListFragment fragment;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -40,12 +42,16 @@ public class PersonListActivity extends FragmentActivity implements
 	}
 
 	private void setupFragmentArguments() {
-		PersonListFragment fragment = (PersonListFragment) getSupportFragmentManager().findFragmentById(R.id.person_list);
+		fragment = (PersonListFragment) getSupportFragmentManager().findFragmentById(R.id.person_list);
 		Bundle arguments = getIntent().getExtras();
 		String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
 		fragment.setMode(PersonListFragment.PERSON_LIST_MODE.valueOf(modeName));
 	}
 
+	public PersonListFragment getFragment() {
+		return fragment;
+	}
+	
 	/**
 	 * Callback method from {@link PersonListFragment.Callbacks} indicating that
 	 * the item with the given ID was selected.

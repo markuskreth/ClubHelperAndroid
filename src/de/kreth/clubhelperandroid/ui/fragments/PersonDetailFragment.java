@@ -50,15 +50,15 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import de.kreth.clubhelperandroid.Factory;
-import de.kreth.clubhelperandroid.data.ContactType;
-import de.kreth.clubhelperandroid.data.Person;
-import de.kreth.clubhelperandroid.data.PersonContact;
 import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
 import de.kreth.clubhelperandroid.ui.PersonDetailActivity;
 import de.kreth.clubhelperandroid.ui.PersonListActivity;
 import de.kreth.clubhelperandroid.ui.utils.DialogDoConnection;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
 import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.data.ContactType;
+import de.kreth.clubhelperbusiness.data.Person;
+import de.kreth.clubhelperbusiness.data.PersonContact;
 
 /**
  * A fragment representing a single Person detail screen. This fragment is

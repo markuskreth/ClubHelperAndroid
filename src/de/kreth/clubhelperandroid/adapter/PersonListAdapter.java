@@ -6,7 +6,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import de.kreth.clubhelperandroid.data.Person;
+import de.kreth.clubhelperbusiness.data.Person;
 
 public class PersonListAdapter extends ArrayAdapter<Person> {
 	
