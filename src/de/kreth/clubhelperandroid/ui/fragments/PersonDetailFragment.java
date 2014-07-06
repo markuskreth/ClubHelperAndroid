@@ -298,11 +298,13 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	private void setupPerson(long personId) {
 
 		personOriginal = persister.getPersonById(personId);
+		
 		if (personOriginal.isPersistent())
 			person = new Person(personOriginal);
 		else {
 			person = personOriginal;
 		}
+		
 		Log.i(mTag, "Details von " + person);
 		txtFullNameView.setText(getNameOfPerson(person));
 		updateBirthdayValues();
@@ -583,7 +585,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private void goBackAndStore() {
 		boolean wasPersistend = person.isPersistent();
-		persister.storePerson(person);
+		person = persister.storePerson(person);
 		personOriginal = person;
 
 		if (!wasPersistend) {
@@ -592,7 +594,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 				storeContacts.add(new PersonContact(person.getId(), con
 						.getType(), con.getValue()));
 			}
-			persister.storePersonContacts(storeContacts);
+			storeContacts = persister.storePersonContacts(storeContacts);
 			contactsOriginal = storeContacts;
 			contacts = new ArrayList<PersonContact>(storeContacts); // Eigentlich
 																	// unnötig,

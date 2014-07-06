@@ -99,7 +99,8 @@ public class PersonPersisterImpl {
 
 		String sql = "select " + TABLE_PERSON + ".*," + COLUMN_ATTENDANCE_DATE + ", " + TABLE_ATTENDANCE + "." + COLUMN_ID + " AS " + ATTENDANCE_ID 
 				+ " from " + TABLE_PERSON + " LEFT JOIN " + TABLE_ATTENDANCE 
-				+ " ON " + TABLE_PERSON + "." + COLUMN_ID + "=" + TABLE_ATTENDANCE + "." + COLUMN_PERSON_FK + " AND " + COLUMN_ATTENDANCE_DATE + "=" + forDate.getTimeInMillis() + (whereClause != null && ! whereClause.isEmpty() ? ( " WHERE " + whereClause) : "");
+				+ " ON " + TABLE_PERSON + "." + COLUMN_ID + "=" + TABLE_ATTENDANCE + "." + COLUMN_PERSON_FK + " AND " + COLUMN_ATTENDANCE_DATE + "=" + forDate.getTimeInMillis() + (whereClause != null && ! whereClause.isEmpty() ? ( " WHERE " + whereClause) : "")
+				+ " ORDER BY " + COLUMN_PERSON_PRENAME + ", " + COLUMN_PERSON_SURNAME + ", " + COLUMN_ATTENDANCE_DATE;
 
 		Cursor query = db.rawQuery(sql, null);
 		
@@ -159,6 +160,10 @@ public class PersonPersisterImpl {
 		return new Attendance(insertId, a.getPerson(), attendenceDate);
 	}
 
+	public void deleteNegativContacts() {
+		db.delete(TABLE_CONTACT, COLUMN_PERSON_FK + "<0", null);
+	}
+	
 	/**
 	 * Niemals null - leeres Array
 	 * @param person
@@ -204,8 +209,10 @@ public class PersonPersisterImpl {
 	public Person storePerson(Person person){
 		if(person.isPersistent())
 			return updatePerson(person);
-		else
-			return insertPerson(person);
+		else{
+			Person insertPerson = insertPerson(person);
+			return insertPerson;
+		}
 	}
 	
 	private Person updatePerson(Person person) {
@@ -259,6 +266,7 @@ public class PersonPersisterImpl {
 	public void deletePersonContacts(List<PersonContact> data) {
 		secureStmDeletePersonContractsExists();
 
+		deleteNegativContacts();
 		for(PersonContact con: data){
 			stmDeletePersonContracts.bindLong(1, con.getPersonId());
 			stmDeletePersonContracts.executeUpdateDelete();

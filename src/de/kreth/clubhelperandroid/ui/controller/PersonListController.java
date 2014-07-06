@@ -30,12 +30,12 @@ public class PersonListController implements OnCheckedChangeListener {
 	private PERSON_LIST_MODE mode = PERSON_LIST_MODE.NORMAL;
 	
 	private PersonListAdapter adapterNormal;
+	private PersonAttendenceListAdapter adapterAttendence;
 
 	private PersonPersisterImpl persister;
 
 	private Calendar attendenceDate;
 
-	private PersonAttendenceListAdapter adapterAttendence;
 
 	private AttendanceManager attManager;
 
@@ -71,20 +71,21 @@ public class PersonListController implements OnCheckedChangeListener {
 		}
 		
 		if(mode == PERSON_LIST_MODE.NORMAL) {
-			List<Person> personsWhere = persister.getPersonsWhere(whereClause);
+			final List<Person> personsWhere = persister.getPersonsWhere(whereClause);
+
 			adapterNormal.clear();
 			adapterNormal.addAll(personsWhere);
+			
 		} else if (mode == PERSON_LIST_MODE.ATTENDANCE) {
 			adapterAttendence.clear();
 			List<Attendance> allAttendances = persister.getAttendancesWhere(whereClause, this.attendenceDate);
 			adapterAttendence.addAll(allAttendances);
-			adapterAttendence.setDate(attendenceDate);
-			
+			adapterAttendence.notifyDataSetChanged();
 			initAttendenceManager(allAttendances);			
 		}
 	}
 
-	public void setupAdapter(FragmentActivity fragmentActivity, ListView listView, ListItemDragOnLongClickListener listener) {
+	public void setupAdapter(final FragmentActivity fragmentActivity, ListView listView, ListItemDragOnLongClickListener listener) {
 		
 		switch (mode) {
 		case ATTENDANCE:
@@ -92,14 +93,15 @@ public class PersonListController implements OnCheckedChangeListener {
 			initAttendenceManager(allAttendances);
 			adapterAttendence = new PersonAttendenceListAdapter(fragmentActivity, allAttendances);
 			listView.setAdapter(adapterAttendence);
+			listView.setLongClickable(false);
 			adapterAttendence.setCheckedChangeListener(this);
 			break;
 		case NORMAL:
 		default:
 			adapterNormal = new PersonListAdapter(fragmentActivity, persons);
 			listView.setAdapter(adapterNormal);
-			listView.setOnItemLongClickListener(listener);
 			listView.setLongClickable(true);
+			listView.setOnItemLongClickListener(listener);
 			break;
 		}
 	}
@@ -114,7 +116,8 @@ public class PersonListController implements OnCheckedChangeListener {
 	}
 
 	public void storeCurrentValues() {
-		persister.storeAttendances(attendenceDate, attManager.getAttendences());
+		if(persister != null && attendenceDate != null && attManager != null)
+			persister.storeAttendances(attendenceDate, attManager.getAttendences());
 	}
 
 	public Person getPersonAt(int position){
@@ -140,6 +143,10 @@ public class PersonListController implements OnCheckedChangeListener {
 		persister.deletePerson(pers);
 	}	
 	
+	public void deleteNegativContacts() {
+		persister.deleteNegativContacts();
+	}
+
 	@Override
 	public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 		ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -150,26 +157,31 @@ public class PersonListController implements OnCheckedChangeListener {
 
 				long personId = ((Long)buttonView.getTag()).longValue();
 				List<Person> snapshot = new ArrayList<Person>();
+				
 				synchronized (persons) {
 					snapshot.addAll(persons);
 				}
+				
 				for(Person p:snapshot){
 					if(p.getId()== personId){
 						if(isChecked){
 							attManager.attendent(p);
-						} else
+						} else {
 							attManager.remove(p);
+						}
 						break;
 					}
 				}
 			}
 		});
+		
 		exec.shutdown();
 	}
 
 	public void setDate(int year, int monthOfYear, int dayOfMonth) {
 		storeCurrentValues();
 		attendenceDate.set(year, monthOfYear, dayOfMonth);
+		adapterAttendence.setDate(attendenceDate);
 	}
 
 }

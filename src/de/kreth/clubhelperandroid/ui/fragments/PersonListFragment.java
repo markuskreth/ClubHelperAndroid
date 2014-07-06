@@ -1,6 +1,7 @@
 package de.kreth.clubhelperandroid.ui.fragments;
 
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -15,6 +16,7 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.DragEvent;
@@ -203,7 +205,7 @@ public class PersonListFragment extends Fragment {
 		buttonBarDropTarget.setVisibility(View.GONE);
 		buttonBarDropTarget.findViewById(R.id.btnItemDelete).setOnDragListener(new ObjectDragListener());
 
-		listView = (ListView) rootView.findViewById(R.id.listView1);
+		listView = (ListView) rootView.findViewById(R.id.listViewPersons);
 
 		txtTitle = (TextView) rootView.findViewById(R.id.textTitle);
 		
@@ -256,9 +258,13 @@ public class PersonListFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
+		
+		controller.deleteNegativContacts();
+		
 		if(controller.getMode() == PERSON_LIST_MODE.ATTENDANCE){
 			showAttendanceDateDialog();
 		}
+		
 		refreshList();
 	}
 
@@ -275,17 +281,27 @@ public class PersonListFragment extends Fragment {
 	}
 
 	private OnDateSetListener createDateSetListener() {
-		final SimpleDateFormat df = new SimpleDateFormat("cc, dd.MM.yyyy", Locale.GERMANY);
 		
 		OnDateSetListener listener = new OnDateSetListener() {
 			
 			@Override
-			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-				controller.setDate(year, monthOfYear, dayOfMonth);
-				
-				String title = getActivity().getString(R.string.title_activity_attendance) + " " + df.format(controller.getAttendanceDate().getTime());
-				txtTitle.setText(title);
-				refreshList();
+			public void onDateSet(DatePicker view, final int year, final int monthOfYear, final int dayOfMonth) {
+				final FragmentActivity act = getActivity();
+				if(!isDetached() && !isRemoving() && act != null) {
+					act.runOnUiThread(new Runnable() {
+
+						DateFormat df = new SimpleDateFormat("cc, dd.MM.yyyy", Locale.GERMANY);
+						
+						@Override
+						public void run() {
+							controller.setDate(year, monthOfYear, dayOfMonth);
+							
+							String title = act.getString(R.string.title_activity_attendance) + " " + df.format(controller.getAttendanceDate().getTime());
+							txtTitle.setText(title);
+							refreshList();
+						}
+					});
+				}
 			}
 		};
 		return listener ;
@@ -342,7 +358,13 @@ public class PersonListFragment extends Fragment {
 	}
 	
 	public void refreshList(){
-		controller.filterPerson(PersonListFragment.this.filter.getText().toString());
+		getActivity().runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				controller.filterPerson(PersonListFragment.this.filter.getText().toString());
+			}
+		});
 	}
 
 	public class ListItemDragOnLongClickListener implements OnItemLongClickListener {
