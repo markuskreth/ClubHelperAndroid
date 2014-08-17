@@ -11,16 +11,17 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import de.kreth.clubhelperbusiness.data.Attendance;
+import de.kreth.clubhelperbusiness.data.ClubHelperPersister;
 import de.kreth.clubhelperbusiness.data.ContactType;
 import de.kreth.clubhelperbusiness.data.Person;
 import de.kreth.clubhelperbusiness.data.PersonContact;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
-public class PersonPersisterImpl {
+public class PersonPersisterImpl implements ClubHelperPersister {
+	
 	private static final String[] CONTACT_COLUMNS = {COLUMN_ID, COLUMN_PERSON_FK, COLUMN_CONTACT_TYPE, COLUMN_CONTACT_VALUE};
 	private List<String> contactColumnNames = Arrays.asList(CONTACT_COLUMNS);
 
@@ -38,15 +39,18 @@ public class PersonPersisterImpl {
 		this.db = db;
 	}
 	
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#close()
+	 */
+	@Override
 	public void close(){
 		db.close();
 	}
 	
-	/**
-	 * Niemals null - leere Person.
-	 * @param personId
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#getPersonById(long)
 	 */
+	@Override
 	public Person getPersonById(long personId){
 		
 		if(personId<0)
@@ -68,15 +72,18 @@ public class PersonPersisterImpl {
 		return cursorToPerson;		
 	}
 
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#getAllPersons()
+	 */
+	@Override
 	public List<Person> getAllPersons() {
 		return getPersonsWhere(null);
 	}
 
-	/**
-	 * liefert eine auswahl an Personen auf die die whereClause zutrifft.
-	 * @param whereClause null oder where-bedingung wie in sql ohne "WHERE" 
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#getPersonsWhere(java.lang.String)
 	 */
+	@Override
 	public List<Person> getPersonsWhere(String whereClause) {
 		List<Person> result = new ArrayList<Person>();
 
@@ -89,11 +96,10 @@ public class PersonPersisterImpl {
 		return result;
 	}
 
-	/**
-	 * liefert eine auswahl an Personen auf die die whereClause zutrifft.
-	 * @param whereClause null oder where-bedingung wie in sql ohne "WHERE"
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#getAttendancesWhere(java.lang.String, java.util.Calendar)
 	 */
+	@Override
 	public List<Attendance> getAttendancesWhere(String whereClause, Calendar forDate) {
 		List<Attendance> result = new ArrayList<Attendance>();
 
@@ -160,15 +166,18 @@ public class PersonPersisterImpl {
 		return new Attendance(insertId, a.getPerson(), attendenceDate);
 	}
 
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#deleteNegativContacts()
+	 */
+	@Override
 	public void deleteNegativContacts() {
 		db.delete(TABLE_CONTACT, COLUMN_PERSON_FK + "<0", null);
 	}
 	
-	/**
-	 * Niemals null - leeres Array
-	 * @param person
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#getContactsFor(de.kreth.clubhelperbusiness.data.Person)
 	 */
+	@Override
 	public List<PersonContact> getContactsFor(Person person) {
 		List<PersonContact> result = new ArrayList<PersonContact>();
 		Cursor query = db.query(TABLE_CONTACT, CONTACT_COLUMNS, COLUMN_PERSON_FK + "=" + person.getId(), null, null, null, null);
@@ -201,11 +210,10 @@ public class PersonPersisterImpl {
 		return p;
 	}
 
-	/**
-	 * Speichert die Person und liefert eine ggf. aktualisierte Person zurück.
-	 * @param person
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#storePerson(de.kreth.clubhelperbusiness.data.Person)
 	 */
+	@Override
 	public Person storePerson(Person person){
 		if(person.isPersistent())
 			return updatePerson(person);
@@ -240,6 +248,10 @@ public class PersonPersisterImpl {
 		return values;
 	}
 
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#deletePerson(de.kreth.clubhelperbusiness.data.Person)
+	 */
+	@Override
 	public void deletePerson(Person data) {
 		if(data.getId() >=0){
 			int delete = db.delete(TABLE_PERSON, COLUMN_ID + "=" + data.getId(), null);
@@ -248,11 +260,10 @@ public class PersonPersisterImpl {
 		}
 	}
 
-	/**
-	 * Speichert die Daten und liefert die aktualisierten Daten zurück.
-	 * @param data
-	 * @return
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#storePersonContacts(java.util.List)
 	 */
+	@Override
 	public List<PersonContact> storePersonContacts(List<PersonContact> data) {
 		
 		deletePersonContacts(data);
@@ -263,6 +274,10 @@ public class PersonPersisterImpl {
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#deletePersonContacts(java.util.List)
+	 */
+	@Override
 	public void deletePersonContacts(List<PersonContact> data) {
 		secureStmDeletePersonContractsExists();
 
@@ -302,6 +317,10 @@ public class PersonPersisterImpl {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see de.kreth.clubhelperandroid.data.ClubHelperPersister#storeAttendances(java.util.Calendar, java.util.Collection)
+	 */
+	@Override
 	public void storeAttendances(Calendar attendenceDate, Collection<Attendance> attendences) {
 		deleteAttendences(attendenceDate);
 		

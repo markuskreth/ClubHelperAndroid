@@ -52,11 +52,6 @@ public class PersonListFragment extends Fragment {
 
 	public static final String ActivateOnItemClick = "ActivateOnItemClick to Set";
 	
-	public enum PERSON_LIST_MODE {
-		NORMAL,
-		ATTENDANCE
-	}
-	
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
 	 * activated item position. Only used on tablets.
@@ -115,8 +110,8 @@ public class PersonListFragment extends Fragment {
 
 	public void onCreateOptionsMenu(Menu menu, android.view.MenuInflater inflater) {
 		
-		PERSON_LIST_MODE mode = controller.getMode();
-		if(mode  != null && mode == PERSON_LIST_MODE.ATTENDANCE)
+		PersonListController.PERSON_LIST_MODE mode = controller.getMode();
+		if(mode  != null && mode == PersonListController.PERSON_LIST_MODE.ATTENDANCE)
 	        inflater.inflate(R.menu.attendance_view, menu);
 		else
 			inflater.inflate(R.menu.data_view, menu);
@@ -129,9 +124,9 @@ public class PersonListFragment extends Fragment {
 		Bundle arguments = getArguments();
 				
 		if(arguments != null) {
-			String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
+			String modeName = arguments.getString(PersonListController.PERSON_LIST_MODE.class.getName());
 			if(modeName != null && ! modeName.isEmpty()){
-				controller.setMode(PERSON_LIST_MODE.valueOf(modeName));
+				controller.setMode(PersonListController.PERSON_LIST_MODE.valueOf(modeName));
 			}
 		}
 		
@@ -139,7 +134,7 @@ public class PersonListFragment extends Fragment {
 		return rootView;
 	}
 	
-	public void setMode(PERSON_LIST_MODE mode) {
+	public void setMode(PersonListController.PERSON_LIST_MODE mode) {
 		controller.setMode(mode);
 		recreate();
 	}
@@ -177,8 +172,12 @@ public class PersonListFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-	    setHasOptionsMenu(true);
-		controller = new PersonListController();
+		try {
+			setHasOptionsMenu(true);
+			controller = new PersonListController();
+		} catch (Exception e) {
+			getActivity().finish();
+		}
 		
 	}
 
@@ -209,7 +208,7 @@ public class PersonListFragment extends Fragment {
 
 		txtTitle = (TextView) rootView.findViewById(R.id.textTitle);
 		
-		if(controller.getMode() != PERSON_LIST_MODE.ATTENDANCE) {
+		if(controller.getMode() != PersonListController.PERSON_LIST_MODE.ATTENDANCE) {
 			listView.setOnItemClickListener(new OnItemClickListener() {
 	
 				@Override
@@ -261,7 +260,7 @@ public class PersonListFragment extends Fragment {
 		
 		controller.deleteNegativContacts();
 		
-		if(controller.getMode() == PERSON_LIST_MODE.ATTENDANCE){
+		if(controller.getMode() == PersonListController.PERSON_LIST_MODE.ATTENDANCE){
 			showAttendanceDateDialog();
 		}
 		

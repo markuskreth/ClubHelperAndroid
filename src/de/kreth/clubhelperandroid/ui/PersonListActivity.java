@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperandroid.ui.controller.PersonListController;
 import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
+import de.kreth.clubhelperbusiness.controller.PersonDetailController;
 import de.kreth.clubhelperbusiness.data.Person;
 
 /**
@@ -44,8 +46,8 @@ public class PersonListActivity extends FragmentActivity implements
 	private void setupFragmentArguments() {
 		fragment = (PersonListFragment) getSupportFragmentManager().findFragmentById(R.id.person_list);
 		Bundle arguments = getIntent().getExtras();
-		String modeName = arguments.getString(PersonListFragment.PERSON_LIST_MODE.class.getName());
-		fragment.setMode(PersonListFragment.PERSON_LIST_MODE.valueOf(modeName));
+		String modeName = arguments.getString(PersonListController.PERSON_LIST_MODE.class.getName());
+		fragment.setMode(PersonListController.PERSON_LIST_MODE.valueOf(modeName));
 	}
 
 	public PersonListFragment getFragment() {
@@ -63,7 +65,7 @@ public class PersonListActivity extends FragmentActivity implements
 		long personId = -1;
 		if(person != null)
 			personId = person.getId();
-		detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, personId);
+		detailIntent.putExtra(PersonDetailController.ARG_PERSON_ID, personId);
 		startActivity(detailIntent);
 		
 	}

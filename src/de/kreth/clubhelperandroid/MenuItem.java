@@ -13,6 +13,6 @@ public enum MenuItem {
 	}
 	
 	public String toString() {
-		return Factory.getInstance().getString(resourceId);
+		return FactoryAndroid.getInstance().getString(resourceId);
 	};
 }

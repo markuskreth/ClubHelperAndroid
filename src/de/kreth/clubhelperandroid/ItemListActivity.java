@@ -8,11 +8,12 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import de.kreth.clubhelperandroid.ui.PersonDetailActivity;
 import de.kreth.clubhelperandroid.ui.PersonListActivity;
+import de.kreth.clubhelperandroid.ui.controller.PersonListController;
 import de.kreth.clubhelperandroid.ui.fragments.ItemListFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
-import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.controller.PersonDetailController;
 import de.kreth.clubhelperbusiness.data.Person;
 
 /**
@@ -43,9 +44,9 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		try {
-			Factory.getInstance().init(this);
+			FactoryAndroid.getInstance().init(this);
 		} catch (NameNotFoundException e) {
-			Log.e(Factory.getInstance().TAG(), "Fehler bei Factory init", e);
+			Log.e(FactoryAndroid.getInstance().TAG(), "Fehler bei Factory init", e);
 		}
 		setContentView(R.layout.activity_item_list);
 
@@ -90,10 +91,10 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 	@Override
 	public void onItemSelected(MenuItem menuItem) {
 
-		String personListModeName = PersonListFragment.PERSON_LIST_MODE.NORMAL.name();
+		String personListModeName = PersonListController.PERSON_LIST_MODE.NORMAL.name();
 		
 		if(menuItem == MenuItem.PersonAttendance)
-			personListModeName = PersonListFragment.PERSON_LIST_MODE.ATTENDANCE.name();
+			personListModeName = PersonListController.PERSON_LIST_MODE.ATTENDANCE.name();
 		
 		Bundle arguments;
 		
@@ -105,7 +106,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			// for the selected item ID.
 			Intent detailIntent = new Intent(this, PersonListActivity.class);
 			detailIntent.putExtra(PersonListFragment.ActivateOnItemClick, false);
-			detailIntent.putExtra(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
+			detailIntent.putExtra(PersonListController.PERSON_LIST_MODE.class.getName(), personListModeName);
 			startActivity(detailIntent);
 			break;
 		case 2:
@@ -115,7 +116,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			// fragment transaction.
 			arguments = new Bundle();
 			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, false);
-			arguments.putString(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
+			arguments.putString(PersonListController.PERSON_LIST_MODE.class.getName(), personListModeName);
 			
 			fragment = new PersonListFragment();
 			fragment.setArguments(arguments);
@@ -127,7 +128,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		case 3:
 			arguments = new Bundle();
 			arguments.putBoolean(PersonListFragment.ActivateOnItemClick, true);
-			arguments.putString(PersonListFragment.PERSON_LIST_MODE.class.getName(), personListModeName);
+			arguments.putString(PersonListController.PERSON_LIST_MODE.class.getName(), personListModeName);
 			
 			fragment = new PersonListFragment();
 			fragment.setArguments(arguments);
@@ -147,7 +148,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 			Bundle arguments = new Bundle();
 			
 			if(person != null)
-				arguments.putLong(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+				arguments.putLong(PersonDetailController.ARG_PERSON_ID, person.getId());
 			
 			Fragment fragment = new PersonDetailFragment();
 			fragment.setArguments(arguments);
@@ -158,7 +159,7 @@ public class ItemListActivity extends FragmentActivity implements ItemListFragme
 		} else {
 
 			Intent detailIntent = new Intent(this, PersonDetailActivity.class);
-			detailIntent.putExtra(PersonDetailFragment.ARG_PERSON_ID, person.getId());
+			detailIntent.putExtra(PersonDetailController.ARG_PERSON_ID, person.getId());
 			startActivity(detailIntent);
 		}
 	}

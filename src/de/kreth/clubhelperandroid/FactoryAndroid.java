@@ -13,9 +13,9 @@ import com.google.code.microlog4android.config.PropertyConfigurator;
 
 import de.kreth.mtvtraininghelper2.database.MtvSqLiteOpenHelper;
 
-public class Factory {
+public class FactoryAndroid {
 	
-	protected static Factory instance = null;
+	protected static FactoryAndroid instance = null;
 	private Logger logger = null;
 	private static final String DB_NAME = "database.sqlite";
 	private static final String TAG = "MTV";
@@ -24,12 +24,12 @@ public class Factory {
 	private SQLiteDatabase db;
 	private Resources resources;
 	
-	protected Factory() {
+	protected FactoryAndroid() {
 	}
 	
-	public static Factory getInstance() {
+	public static FactoryAndroid getInstance() {
 		if(instance == null)
-			instance = new Factory();			
+			instance = new FactoryAndroid();			
 		return instance;
 	}
 	

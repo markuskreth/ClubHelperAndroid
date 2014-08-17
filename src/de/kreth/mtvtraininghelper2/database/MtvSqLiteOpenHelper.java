@@ -13,7 +13,7 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import de.kreth.androiddbmanager.AndroidDatabase;
-import de.kreth.clubhelperandroid.Factory;
+import de.kreth.clubhelperandroid.FactoryAndroid;
 import de.kreth.dbmanager.ColumnDefinition;
 import de.kreth.dbmanager.DataType;
 import de.kreth.dbmanager.DbManager;
@@ -97,11 +97,11 @@ public class MtvSqLiteOpenHelper extends SQLiteOpenHelper {
 
 	public MtvSqLiteOpenHelper(Context context, String name, CursorFactory factory, int version) {
 		super(context, name, factory, version);
-		mTag = Factory.getInstance().TAG() + "_" + getClass().getSimpleName();
+		mTag = FactoryAndroid.getInstance().TAG() + "_" + getClass().getSimpleName();
 		try {
 			packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 		} catch (NameNotFoundException e) {
-			Factory.getInstance().handleException(Log.WARN, mTag, e);
+			FactoryAndroid.getInstance().handleException(Log.WARN, mTag, e);
 		}
 	}
 
@@ -111,7 +111,7 @@ public class MtvSqLiteOpenHelper extends SQLiteOpenHelper {
 		try {
 			manager.execute();
 		} catch (SQLException e) {
-			Factory.getInstance().handleException(Log.WARN, mTag, e);
+			FactoryAndroid.getInstance().handleException(Log.WARN, mTag, e);
 		}
 		
 	}
@@ -146,7 +146,7 @@ public class MtvSqLiteOpenHelper extends SQLiteOpenHelper {
 		try {
 			manager.execute();
 		} catch (SQLException e) {
-			Factory.getInstance().handleException(Log.WARN, mTag, e);
+			FactoryAndroid.getInstance().handleException(Log.WARN, mTag, e);
 		}
 	}
 

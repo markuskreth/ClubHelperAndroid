@@ -13,9 +13,10 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
+import de.kreth.clubhelperandroid.R;
 import de.kreth.clubhelperandroid.ui.fragments.PersonDetailFragment;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
-import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.controller.PersonDetailController;
 
 /**
  * An activity representing a single Person detail screen. This activity is only
@@ -51,9 +52,9 @@ public class PersonDetailActivity extends FragmentActivity implements FragmentNa
 		if (savedInstanceState == null) {
 
 			Intent intent = getIntent();
-			long personId = intent.getLongExtra(PersonDetailFragment.ARG_PERSON_ID, -1);
+			long personId = intent.getLongExtra(PersonDetailController.ARG_PERSON_ID, -1);
 			Bundle args = new Bundle();
-			args.putLong(PersonDetailFragment.ARG_PERSON_ID, personId);
+			args.putLong(PersonDetailController.ARG_PERSON_ID, personId);
 			
 			fragment = new PersonDetailFragment();
 			fragment.setArguments(args);

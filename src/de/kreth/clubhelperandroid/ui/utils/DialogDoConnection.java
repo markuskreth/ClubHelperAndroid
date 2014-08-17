@@ -12,6 +12,7 @@ import de.kreth.clubhelperandroid.R;
 import de.kreth.clubhelperbusiness.data.PersonContact;
 
 public class DialogDoConnection {
+	
 	private PersonContact contact;
 
 	public DialogDoConnection(PersonContact contact) {

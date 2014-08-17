@@ -14,25 +14,29 @@ import android.support.v4.app.FragmentActivity;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
-import de.kreth.clubhelperandroid.Factory;
+import de.kreth.clubhelperandroid.FactoryAndroid;
 import de.kreth.clubhelperandroid.adapter.PersonAttendenceListAdapter;
 import de.kreth.clubhelperandroid.adapter.PersonListAdapter;
 import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
 import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment.ListItemDragOnLongClickListener;
-import de.kreth.clubhelperandroid.ui.fragments.PersonListFragment.PERSON_LIST_MODE;
 import de.kreth.clubhelperbusiness.attendence.AttendanceManager;
 import de.kreth.clubhelperbusiness.data.Attendance;
+import de.kreth.clubhelperbusiness.data.ClubHelperPersister;
 import de.kreth.clubhelperbusiness.data.Person;
 
 public class PersonListController implements OnCheckedChangeListener {
 
-
+	public enum PERSON_LIST_MODE {
+		NORMAL,
+		ATTENDANCE
+	}
+	
 	private PERSON_LIST_MODE mode = PERSON_LIST_MODE.NORMAL;
 	
 	private PersonListAdapter adapterNormal;
 	private PersonAttendenceListAdapter adapterAttendence;
 
-	private PersonPersisterImpl persister;
+	private ClubHelperPersister persister;
 
 	private Calendar attendenceDate;
 
@@ -49,7 +53,7 @@ public class PersonListController implements OnCheckedChangeListener {
 		attendenceDate.set(Calendar.SECOND, 0);
 		attendenceDate.set(Calendar.MILLISECOND, 0);
 
-		persister = new PersonPersisterImpl(Factory.getInstance().getDatabase());
+		persister = new PersonPersisterImpl(FactoryAndroid.getInstance().getDatabase());
 		persons = persister.getAllPersons();
 	}
 

@@ -49,29 +49,25 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
-import de.kreth.clubhelperandroid.Factory;
+import de.kreth.clubhelperandroid.FactoryAndroid;
+import de.kreth.clubhelperandroid.R;
 import de.kreth.clubhelperandroid.data.PersonPersisterImpl;
 import de.kreth.clubhelperandroid.ui.PersonDetailActivity;
 import de.kreth.clubhelperandroid.ui.PersonListActivity;
 import de.kreth.clubhelperandroid.ui.utils.DialogDoConnection;
 import de.kreth.clubhelperandroid.ui.utils.FragmentNavigator;
-import de.kreth.clubhelperandroid.R;
+import de.kreth.clubhelperbusiness.controller.PersonDetailController;
 import de.kreth.clubhelperbusiness.data.ContactType;
 import de.kreth.clubhelperbusiness.data.Person;
 import de.kreth.clubhelperbusiness.data.PersonContact;
+import de.kreth.clubhelperbusiness.display.PersonDetailDisplay;
 
 /**
  * A fragment representing a single Person detail screen. This fragment is
  * either contained in a {@link PersonListActivity} in two-pane mode (on
  * tablets) or a {@link PersonDetailActivity} on handsets.
  */
-public class PersonDetailFragment extends Fragment implements OnClickListener {
-
-	public static final String ARG_PERSON_ID = "person_id";
-	public static final int BTN_DEL_CONTACT_ID = 456123;
-
-	private Person personOriginal = null;
-	private Person person = null;
+public class PersonDetailFragment extends Fragment implements OnClickListener, PersonDetailDisplay {
 
 	private TextView txtFullNameView;
 
@@ -83,39 +79,30 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private TableLayout table;
 
-	private List<PersonContact> contactsOriginal;
-	private List<PersonContact> contacts;
-
-	private int contactCount;
 	private ViewGroup buttonBarMain;
 	private ViewGroup buttonBarDropContact;
-	private PersonPersisterImpl persister;
+	
 	private FragmentNavigator navigator = FragmentNavigator.DUMMY;
+
+	private PersonDetailController controller;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		mTag = Factory.getInstance().TAG() + getClass().getSimpleName();
-		persister = new PersonPersisterImpl(Factory.getInstance().getDatabase());
+		mTag = FactoryAndroid.getInstance().TAG() + getClass().getSimpleName();
+		this.controller = new PersonDetailController(this, new PersonPersisterImpl(FactoryAndroid.getInstance().getDatabase()));
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		long personId = getArguments().getLong(
-				PersonDetailFragment.ARG_PERSON_ID, -1);
-		// personHandler = activity.getPersonHandler();
-		// contactHandler = (ContactListHolder)activity.getContactHandler();
+		long personId = getArguments().getLong(PersonDetailController.ARG_PERSON_ID, -1);
 
-		rootView = inflater.inflate(R.layout.fragment_person_detail, container,
-				false);
-		initViewComponents();
-
-		// activity.addPropertyChangeListener(this);
-		setupPerson(personId);
-		setupContacts();
+		controller.init(personId);
+		
+		rootView = inflater.inflate(R.layout.fragment_person_detail, container, false);
+		initViewComponents();		
 		setupDragAndDrop();
 
 		return rootView;
@@ -125,9 +112,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (!(activity instanceof FragmentNavigator)) {
-			throw new IllegalStateException(activity.getClass().getSimpleName()
-					+ " must be an Instance of"
-					+ FragmentNavigator.class.getSimpleName());
+			throw new IllegalStateException(activity.getClass().getSimpleName() + " must be an Instance of" + FragmentNavigator.class.getSimpleName());
 		}
 		this.navigator = (FragmentNavigator) activity;
 	}
@@ -140,78 +125,19 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	private void setupDragAndDrop() {
 		buttonBarMain = (ViewGroup) rootView.findViewById(R.id.buttonBarMain);
-		buttonBarDropContact = (ViewGroup) rootView
-				.findViewById(R.id.buttonBarDropArea);
+		buttonBarDropContact = (ViewGroup) rootView.findViewById(R.id.buttonBarDropArea);
 		buttonBarDropContact.setVisibility(View.GONE);
 		ObjectDragListener listener = new ObjectDragListener();
-		buttonBarDropContact.findViewById(R.id.btnItemDelete)
-				.setOnDragListener(listener);
-		buttonBarDropContact.findViewById(R.id.btnItemEdit).setOnDragListener(
-				listener);
+		buttonBarDropContact.findViewById(R.id.btnItemDelete).setOnDragListener(listener);
+		buttonBarDropContact.findViewById(R.id.btnItemEdit).setOnDragListener(listener);
 
 	}
 
-	private void setupContacts() {
-		int index = findIndexOfRowWithId(R.id.tableRowContacts);
-
-		if (contacts != null) {
-			table.removeViews(index, contactCount);
-			// contacts = persister.getContactsFor(person);
-		} else {
-			contactsOriginal = persister.getContactsFor(person);
-			contacts = new ArrayList<PersonContact>(contactsOriginal);
-		}
-
-		contactCount = contacts.size();
-
-		for (final PersonContact con : contacts) {
-			TableRow row = createNewTableRow();
-			View view1 = createNewContactTypeViewForTableRow(con.getType());
-			view1.setFocusable(false);
-
-			row.addView(view1);
-			String text;
-			if (con.getType() == ContactType.MOBILE
-					|| con.getType() == ContactType.TELEPHONE) {
-				text = con.getFormattedValue();
-			} else {
-				text = con.getValue();
-			}
-
-			TextView txtValue = createNewContactValueTextViewForTableRow(text);
-			row.addView(txtValue);
-
-			row.setTag(con.getId());
-
-			TableRowDragListener trdl = new TableRowDragListener();
-			row.setOnLongClickListener(trdl);
-			row.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View v) {
-					DialogDoConnection connectDialog = new DialogDoConnection(
-							con);
-					connectDialog.showDialog(getActivity());
-				}
-			});
-			table.addView(row, index);
-			index++;
-		}
-
-		View redLine = new View(getActivity());
-		ColorDrawable red = new ColorDrawable();
-		red.setColor(Color.RED);
-		redLine.setBackground(red);
-		redLine.setLayoutParams(new TableRow.LayoutParams(
-				TableRow.LayoutParams.WRAP_CONTENT, 3));
-		table.addView(redLine);
-	}
-
+	
 	public void deleteTableRowContact(TableRow contactRow) {
 		Object tag = contactRow.getTag();
-		int contactIdToDelete = (Integer) tag;
-		PersonContact toDelete = findContactWithId(contactIdToDelete);
-		contacts.remove(toDelete);
+		long contactIdToDelete = (Long) tag;
+		controller.delete(controller.findContactWithId(contactIdToDelete));
 	}
 
 	private int findIndexOfRowWithId(int idOfRow) {
@@ -225,22 +151,10 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		return table.getChildCount();
 	}
 
-	private PersonContact findContactWithId(int contactId) {
-		for (PersonContact cont : contacts) {
-			if (cont.getId() == contactId)
-				return cont;
-		}
-		throw new IllegalArgumentException("Kein "
-				+ PersonContact.class.getSimpleName() + " gefunden in Liste "
-				+ contacts);
-	}
-
 	private TextView createNewContactValueTextViewForTableRow(String value) {
 		TextView t = new TextView(getActivity());
 		t.setText(value);
-		TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
-				TableRow.LayoutParams.WRAP_CONTENT,
-				TableRow.LayoutParams.WRAP_CONTENT);
+		TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
 		t.setLayoutParams(layoutParams);
 		return t;
 	}
@@ -264,9 +178,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		}
 
 		view.setText(text + ": ");
-		TableRow.LayoutParams para = new TableRow.LayoutParams(
-				TableRow.LayoutParams.WRAP_CONTENT,
-				TableRow.LayoutParams.WRAP_CONTENT);
+		TableRow.LayoutParams para = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
 		view.setLayoutParams(para);
 		return view;
 	}
@@ -276,9 +188,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 			@Override
 			public boolean dispatchDragEvent(DragEvent ev) {
 				boolean r = super.dispatchDragEvent(ev);
-				if (r
-						&& (ev.getAction() == DragEvent.ACTION_DRAG_STARTED || ev
-								.getAction() == DragEvent.ACTION_DRAG_ENDED)) {
+				if (r && (ev.getAction() == DragEvent.ACTION_DRAG_STARTED || ev.getAction() == DragEvent.ACTION_DRAG_ENDED)) {
 					// If we got a start or end and the return value is true,
 					// our
 					// onDragEvent wasn't called by ViewGroup.dispatchDragEvent
@@ -288,64 +198,9 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 				return r;
 			}
 		};
-		row.setLayoutParams(new TableRow.LayoutParams(
-				TableRow.LayoutParams.WRAP_CONTENT,
-				TableRow.LayoutParams.WRAP_CONTENT));
+		row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT));
 		row.setPadding(2, 5, 5, 2);
 		return row;
-	}
-
-	private void setupPerson(long personId) {
-
-		personOriginal = persister.getPersonById(personId);
-		
-		if (personOriginal.isPersistent())
-			person = new Person(personOriginal);
-		else {
-			person = personOriginal;
-		}
-		
-		Log.i(mTag, "Details von " + person);
-		txtFullNameView.setText(getNameOfPerson(person));
-		updateBirthdayValues();
-
-	}
-
-	public boolean checkIfPersonWasEdited() {
-		boolean personMustBeStored = personOriginal.getBirthdate().compareTo(
-				personOriginal.getBirthdate()) != 0;
-		personMustBeStored |= nameHasChanged();
-		personMustBeStored |= contactsHaveChanged();
-		return personMustBeStored;
-	}
-
-	private boolean contactsHaveChanged() {
-		boolean retval = false;
-		List<PersonContact> editedData = contacts;
-		if (contactsOriginal.size() != editedData.size()) {
-			retval = true;
-		} else {
-			for (int i = 0; i < contactsOriginal.size(); i++) {
-				if (!contactsOriginal.get(i).equals(editedData.get(i))) {
-					retval = true;
-					break;
-				}
-			}
-		}
-		return retval;
-	}
-
-	private boolean nameHasChanged() {
-		boolean namesAreSame = person.getPreName().contentEquals(
-				personOriginal.getPreName())
-				&& person.getSurName().contentEquals(
-						personOriginal.getSurName());
-		return !namesAreSame;
-	}
-
-	public void updateBirthdayValues() {
-		txtbirthday.setText(DateFormat.getDateInstance().format(
-				person.getBirthdate().getTime()));
 	}
 
 	private void initViewComponents() {
@@ -361,15 +216,13 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		txtFullNameView.addTextChangedListener(new TextWatcher() {
 
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				String fullName = txtFullNameView.getText().toString();
-				setNameOfPerson(fullName, person);
+				controller.changeNameOfPerson(fullName);
 			}
 
 			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 			}
 
 			@Override
@@ -393,32 +246,10 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		return builder.toString();
 	}
 
-	private void setNameOfPerson(String fullName, Person p) {
-		String[] split = fullName.split(" ");
-		p.setPreName(split[0]);
-
-		if (split.length == 1)
-			p.setSurName("");
-		if (split.length == 2)
-			p.setSurName(split[1]);
-		else if (split.length > 2) {
-			String surName = split[split.length - 1];
-			p.setSurName(surName);
-			StringBuilder preNames = new StringBuilder(fullName.length()
-					- surName.length() + split.length + 1);
-			for (int i = 0; i < split.length - 1; i++) {
-				preNames.append(split[i]).append(" ");
-			}
-			p.setPreName(preNames.toString().trim());
-		}
-	}
-
 	private class ObjectDragListener implements OnDragListener {
 
-		Drawable normalShape = getResources().getDrawable(
-				R.drawable.normal_shape);
-		Drawable targetShape = getResources().getDrawable(
-				R.drawable.target_shape);
+		Drawable normalShape = getResources().getDrawable(R.drawable.normal_shape);
+		Drawable targetShape = getResources().getDrawable(R.drawable.target_shape);
 		long lastDrop = -1;
 
 		@Override
@@ -447,9 +278,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 						@Override
 						public void run() {
-							Log.i(mTag,
-									"Setting Visitility on buttonBarMain on VISIBLE: "
-											+ System.currentTimeMillis());
+							Log.i(mTag, "Setting Visitility on buttonBarMain on VISIBLE: " + System.currentTimeMillis());
 							buttonBarMain.setVisibility(View.VISIBLE);
 						}
 					});
@@ -457,9 +286,7 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 						@Override
 						public void run() {
-							Log.i(mTag,
-									"Setting Visitility on buttonBarDropContact on GONE: "
-											+ System.currentTimeMillis());
+							Log.i(mTag, "Setting Visitility on buttonBarDropContact on GONE: " + System.currentTimeMillis());
 							buttonBarDropContact.setVisibility(View.GONE);
 						}
 					});
@@ -482,19 +309,15 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 					});
 				} else if (v.getId() == R.id.btnItemEdit) {
 
-					int contactId = (Integer) row.getTag();
-
-					final PersonContact contact = findContactWithId(contactId);
-					contacts.remove(contact); // TODO Der Dialog sollte die
-												// Liste nicht verändern, wenn
-												// keine Änderungen vorgenommen
-												// wurden.
+					long contactId = (Long) row.getTag();
+					final PersonContact contact = controller.findContactWithId(contactId);
+					controller.delete(contact);
+					
 					getActivity().runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
-							showCreateContactDialog(contact.getType(),
-									contact.getValue());
+							showCreateContactDialog(contact.getType(), contact.getValue());
 						}
 					});
 
@@ -526,8 +349,9 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 		@Override
 		public boolean onLongClick(View v) {
-			int contactId = (Integer) v.getTag();
-			PersonContact contact = findContactWithId(contactId);
+			Object tag = v.getTag();
+			long contactId = (Long) tag;
+			PersonContact contact = controller.findContactWithId(contactId);
 			String text = contact.getType() + " - " + contact.getValue();
 			ClipData.Item item = new ClipData.Item(text);
 			String[] mimeTypes = { ClipDescription.MIMETYPE_TEXT_PLAIN };
@@ -549,20 +373,20 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.buttonOk:
-			goBackAndStore();
+			controller.goBackAndStore();
 			break;
 
 		case R.id.buttonCancel:
-			goBack();
+			controller.goBack();
 			break;
 
 		case R.id.btnEditBirthday:
-			showBirthdayDialog();
+			controller.showBirthdayDialog();
 			break;
 		case R.id.btnAddContact:
 			showCreateContactDialog(ContactType.TELEPHONE, "");
 			break;
-		case PersonDetailFragment.BTN_DEL_CONTACT_ID:
+		case PersonDetailController.BTN_DEL_CONTACT_ID:
 			int contactId = ((Integer) v.getTag()).intValue();
 			Log.w(mTag, "not implemented, Contakt to delete: id=" + contactId);
 			// personContactHolder.deleteData(contactId);
@@ -573,56 +397,19 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 	}
 
-	private void showBirthdayDialog() {
-		Calendar birthdate = person.getBirthdate();
+	public void showBirthdayDialog(Calendar birthdate) {
 		int year = birthdate.get(Calendar.YEAR);
 		int monthOfYear = birthdate.get(Calendar.MONTH);
 		int dayOfMonth = birthdate.get(Calendar.DAY_OF_MONTH);
-		DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
-				createDateSetListener(), year, monthOfYear, dayOfMonth);
+		DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), createDateSetListener(), year, monthOfYear, dayOfMonth);
 		datePickerDialog.show();
 	}
-
-	private void goBackAndStore() {
-		boolean wasPersistend = person.isPersistent();
-		person = persister.storePerson(person);
-		personOriginal = person;
-
-		if (!wasPersistend) {
-			List<PersonContact> storeContacts = new ArrayList<PersonContact>();
-			for (PersonContact con : contacts) {
-				storeContacts.add(new PersonContact(person.getId(), con
-						.getType(), con.getValue()));
-			}
-			storeContacts = persister.storePersonContacts(storeContacts);
-			contactsOriginal = storeContacts;
-			contacts = new ArrayList<PersonContact>(storeContacts); // Eigentlich
-																	// unnötig,
-																	// aber
-																	// vielleicht
-																	// bleibt ja
-																	// was
-																	// offen...
-		} else {
-			persister.storePersonContacts(contacts);
-			contactsOriginal = contacts;
-			contacts = new ArrayList<PersonContact>(contactsOriginal); // Eigentlich unnötig, aber vielleicht bleibt ja was offen...
-		}
-
-		goBack();
+	
+	public void goBack() {
+		navigator.onNavigateBack();
 	}
 
-	private void goBack() {
-		boolean personWasEdited = checkIfPersonWasEdited();
-
-		if (!personWasEdited)
-			navigator.onNavigateBack();
-		else {
-			askUserForDiscard();
-		}
-	}
-
-	private void askUserForDiscard() {
+	public void askUserForDiscard() {
 
 		AlertDialog.OnClickListener listener = new AlertDialog.OnClickListener() {
 
@@ -647,20 +434,14 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		OnDateSetListener l = new OnDateSetListener() {
 
 			@Override
-			public void onDateSet(DatePicker view, int year, int monthOfYear,
-					int dayOfMonth) {
-
-				person.getBirthdate().set(Calendar.YEAR, year);
-				person.getBirthdate().set(Calendar.MONTH, monthOfYear);
-				person.getBirthdate().set(Calendar.DAY_OF_MONTH, dayOfMonth);
-				updateBirthdayValues();
+			public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+				controller.setBirthdate(year, monthOfYear, dayOfMonth);
 			}
 		};
 		return l;
 	}
 
-	private void showCreateContactDialog(ContactType presetType,
-			String presetValue) {
+	private void showCreateContactDialog(ContactType presetType, String presetValue) {
 		final Dialog dlg = new Dialog(getActivity());
 		dlg.setContentView(R.layout.add_contact_dialog);
 		dlg.setTitle(R.string.title_add_contact);
@@ -668,17 +449,14 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		final EditText txt = (EditText) dlg.findViewById(R.id.editText1);
 		txt.setText(presetValue);
 		final PhoneNumberFormattingTextWatcher phoneNumberFormattingTextWatcher = new PhoneNumberFormattingTextWatcher();
-		final ArrayAdapter<ContactType> typeAdapter = new ArrayAdapter<ContactType>(
-				getActivity(), android.R.layout.simple_spinner_item,
-				ContactType.values());
+		final ArrayAdapter<ContactType> typeAdapter = new ArrayAdapter<ContactType>(getActivity(), android.R.layout.simple_spinner_item, ContactType.values());
 		final Spinner typeSpinner = (Spinner) dlg.findViewById(R.id.spinner1);
 		typeSpinner.setAdapter(typeAdapter);
 		typeSpinner.setSelection(presetType.ordinal());
 		typeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
 
 			@Override
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int position, long itemId) {
+			public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long itemId) {
 				ContactType selected = typeAdapter.getItem(position);
 				switch (selected) {
 				case EMAIL:
@@ -696,27 +474,17 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 					else
 						phoneNumberType = PhoneNumberType.FIXED_LINE;
 
-					PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil
-							.getInstance();
-					PhoneNumber exampleNumber = phoneNumberUtil
-							.getExampleNumberForType(Locale.getDefault()
-									.getCountry(), phoneNumberType);
-					txt.setHint(phoneNumberUtil.format(exampleNumber,
-							PhoneNumberFormat.NATIONAL));
+					PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+					PhoneNumber exampleNumber = phoneNumberUtil.getExampleNumberForType(Locale.getDefault().getCountry(), phoneNumberType);
+					txt.setHint(phoneNumberUtil.format(exampleNumber, PhoneNumberFormat.NATIONAL));
 					txt.addTextChangedListener(phoneNumberFormattingTextWatcher);
 					if (txt.getText() != null && txt.getText().length() != 0)
 						try {
-							PhoneNumber phone = phoneNumberUtil.parse(
-									txt.getText().toString()
-											.replaceAll("[^\\d.]", ""), Locale
-											.getDefault().getCountry());
-							txt.setText(phoneNumberUtil.format(phone,
-									PhoneNumberFormat.NATIONAL));
+							PhoneNumber phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
+							txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
 
 						} catch (Exception e) {
-							Log.w(mTag,
-									"Konnte text nicht als Telefonnummer formatieren: "
-											+ txt.getText(), e);
+							Log.w(mTag, "Konnte text nicht als Telefonnummer formatieren: " + txt.getText(), e);
 						}
 					break;
 				default:
@@ -735,33 +503,22 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 
 			@Override
 			public void onClick(View v) {
-				ContactType selectedType = typeAdapter.getItem(typeSpinner
-						.getSelectedItemPosition());
+				ContactType selectedType = typeAdapter.getItem(typeSpinner.getSelectedItemPosition());
 
-				if (selectedType == ContactType.MOBILE
-						|| selectedType == ContactType.TELEPHONE) {
+				if (selectedType == ContactType.MOBILE || selectedType == ContactType.TELEPHONE) {
 
 					PhoneNumber phone;
 					try {
-						PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil
-								.getInstance();
-						phone = phoneNumberUtil.parse(txt.getText().toString()
-								.replaceAll("[^\\d.]", ""), Locale.getDefault()
-								.getCountry());
-						txt.setText(phoneNumberUtil.format(phone,
-								PhoneNumberFormat.NATIONAL));
+						PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+						phone = phoneNumberUtil.parse(txt.getText().toString().replaceAll("[^\\d.]", ""), Locale.getDefault().getCountry());
+						txt.setText(phoneNumberUtil.format(phone, PhoneNumberFormat.NATIONAL));
 					} catch (NumberParseException e) {
-						Factory.getInstance().handleException(Log.ERROR, mTag,
-								e);
+						FactoryAndroid.getInstance().handleException(Log.ERROR, mTag, e);
 					}
 				}
 
 				String text = txt.getText().toString();
-				PersonContact personContact = new PersonContact(person.getId(),
-						selectedType, text);
-				contacts.add(personContact);
-				persister.storePersonContacts(contacts);
-				setupContacts();
+				controller.addPersonContact(selectedType, text);
 				dlg.dismiss();
 			}
 
@@ -776,5 +533,70 @@ public class PersonDetailFragment extends Fragment implements OnClickListener {
 		});
 		dlg.show();
 
+	}
+
+	
+	@Override
+	public void setPerson(Person person) {
+		txtFullNameView.setText(getNameOfPerson(person));
+		setBirthdate(person.getBirthdate());		
+	}
+
+	@Override
+	public void updatePersonContacts(final List<PersonContact> contacts) {
+
+		getActivity().runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				int index = findIndexOfRowWithId(R.id.tableRowContacts);
+				table.removeAllViews();
+
+				for (final PersonContact con : new ArrayList<PersonContact>(contacts)) {
+					TableRow row = createNewTableRow();
+					View view1 = createNewContactTypeViewForTableRow(con.getType());
+					view1.setFocusable(false);
+
+					row.addView(view1);
+					String text;
+					
+					if (con.getType() == ContactType.MOBILE || con.getType() == ContactType.TELEPHONE) {
+						text = con.getFormattedValue();
+					} else {
+						text = con.getValue();
+					}
+
+					TextView txtValue = createNewContactValueTextViewForTableRow(text);
+					row.addView(txtValue);
+
+					row.setTag(con.getId());
+
+					TableRowDragListener trdl = new TableRowDragListener();
+					row.setOnLongClickListener(trdl);
+					row.setOnClickListener(new OnClickListener() {
+
+						@Override
+						public void onClick(View v) {
+							DialogDoConnection connectDialog = new DialogDoConnection(con);
+							connectDialog.showDialog(getActivity());
+						}
+					});
+					table.addView(row, index);
+					index++;
+				}
+
+				View redLine = new View(getActivity());
+				ColorDrawable red = new ColorDrawable();
+				red.setColor(Color.RED);
+				redLine.setBackground(red);
+				redLine.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, 3));
+				table.addView(redLine);
+			}
+		});
+	}
+
+	@Override
+	public void setBirthdate(Calendar birthDate) {
+		txtbirthday.setText(DateFormat.getDateInstance().format(birthDate.getTime()));
 	}
 }
